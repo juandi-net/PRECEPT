@@ -11,16 +11,17 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@precept/shared": "*",
-    "hono": "^4",
     "@hono/node-server": "^1",
-    "openai": "^6",
-    "@supabase/supabase-js": "^2"
+    "@precept/shared": "*",
+    "@supabase/supabase-js": "^2",
+    "hono": "^4",
+    "openai": "^6"
   },
   "devDependencies": {
+    "@types/node": "^22",
+    "supabase": "^2.76.15",
     "tsx": "^4",
     "typescript": "^5",
-    "vitest": "^3",
-    "@types/node": "^22"
+    "vitest": "^3"
   }
 }
