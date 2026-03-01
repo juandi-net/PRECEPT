@@ -1,0 +1,15 @@
+{
+  "name": "precept",
+  "private": true,
+  "workspaces": [
+    "packages/shared",
+    "packages/engine",
+    "packages/web"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces --if-present",
+    "dev:engine": "npm run dev --workspace=packages/engine",
+    "dev:web": "npm run dev --workspace=packages/web"
+  }
+}
