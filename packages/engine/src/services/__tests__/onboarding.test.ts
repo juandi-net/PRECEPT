@@ -47,7 +47,7 @@ describe('OnboardingService', () => {
         id: 'session-1',
         status: 'in_progress' as const,
         conversation: [],
-        preceptsDraft: {},
+        preceptsDraft: {} as any,
         extractionTracker: {
           coveredTopics: [],
           currentPhase: 1,
@@ -59,6 +59,7 @@ describe('OnboardingService', () => {
           ],
           activeThread: null,
         },
+        contextDocuments: null,
         startedAt: new Date().toISOString(),
         completedAt: null,
       };
@@ -101,7 +102,7 @@ describe('OnboardingService', () => {
         conversation: [
           { role: 'ceo' as const, content: 'Hello!', timestamp: new Date().toISOString() },
         ],
-        preceptsDraft: {},
+        preceptsDraft: {} as any,
         extractionTracker: {
           coveredTopics: [],
           currentPhase: 1,
@@ -113,6 +114,7 @@ describe('OnboardingService', () => {
           ],
           activeThread: null,
         },
+        contextDocuments: null,
         startedAt: new Date().toISOString(),
         completedAt: null,
       };
@@ -198,6 +200,7 @@ describe('OnboardingService', () => {
           fieldsRemaining: [],
           activeThread: null,
         },
+        contextDocuments: null,
         startedAt: new Date().toISOString(),
         completedAt: null,
       });

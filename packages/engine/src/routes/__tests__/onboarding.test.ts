@@ -89,6 +89,7 @@ describe('Onboarding Routes', () => {
         conversation: [],
         preceptsDraft: {} as any,
         extractionTracker: {} as any,
+        contextDocuments: null,
         startedAt: new Date().toISOString(),
         completedAt: null,
       });
