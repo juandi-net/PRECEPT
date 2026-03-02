@@ -5,6 +5,8 @@ export type AuditEventType =
   | 'onboarding.session_completed'
   | 'onboarding.session_abandoned'
   | 'onboarding.confirmation_edits'
+  | 'onboarding.documents_added'
+  | 'onboarding.document_removed'
   | 'precepts.created'
   | 'precepts.updated'
   | 'ai.call';
