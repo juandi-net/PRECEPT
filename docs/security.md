@@ -43,8 +43,8 @@ All AI calls in V0.1 route through CLIProxy, a local proxy that exposes Claude m
 │  │  Opus 4.6        │    │  Sonnet 4.6      │         │
 │  │                  │    │                  │         │
 │  │  CEO             │    │  Scribe          │         │
-│  │  Judge           │    │  Workers         │         │
-│  │  Reviewer        │    │                  │         │
+│  │  Judge           │    │  Curator         │         │
+│  │  Reviewer        │    │  Workers         │         │
 │  │  Dispatcher      │    │                  │         │
 │  │  Advisor         │    │                  │         │
 │  └─────────────────┘    └─────────────────┘         │

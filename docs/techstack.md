@@ -106,10 +106,11 @@ All AI calls route through CLIProxy, which proxies the Claude Max subscription v
 │  │  Opus 4.6                  │  │  Sonnet 4.6                │      │
 │  │                            │  │                            │      │
 │  │  • CEO                     │  │  • Scribe                  │      │
-│  │  • Judge                   │  │  • Workers (all types)     │      │
-│  │  • Reviewer                │  │                            │      │
-│  │  • Dispatcher              │  │  Fallback: Haiku 4.5       │      │
-│  │  • Board Advisor           │  │  (if rate limits hit)      │      │
+│  │  • Judge                   │  │  • Curator                 │      │
+│  │  • Reviewer                │  │  • Workers (all types)     │      │
+│  │  • Dispatcher              │  │                            │      │
+│  │  • Board Advisor           │  │  Fallback: Haiku 4.5       │      │
+│  │                            │  │  (if rate limits hit)      │      │
 │  └───────────────────────────┘  └───────────────────────────┘      │
 └─────────────────────────────────────────────────────────────────────┘
                       │

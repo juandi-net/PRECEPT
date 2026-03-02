@@ -36,6 +36,7 @@ Three entry points feed into a single orchestration core:
 │  │  • Task completion → Reviewer → Judge → Dispatcher  │   │
 │  │  • Escalation → CEO                                 │   │
 │  │  • Phase completion → Scribe → CEO                  │   │
+│  │  • Weekly batch → Curator (skill extraction/refine)  │   │
 │  └─────────────────────────────────────────────────────┘   │
 │         │                 │                    │            │
 │         ▼                 ▼                    ▼            │

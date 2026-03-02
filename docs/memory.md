@@ -334,6 +334,20 @@ Progress tracking for each active initiative.
 │  │  (Dispatcher)  │  │  (engine)       │  │  (Dispatcher)    │      │
 │  └────────────────┘  └────────────────┘  └──────────────────┘      │
 └─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                     SKILLS (Procedural Memory)                        │
+│                     (Permanent, versioned via git)                    │
+│                                                                     │
+│  ┌──────────────────────────────────────────────────────────┐      │
+│  │  Skill Files (.md in monorepo) + skill_index (Supabase)   │      │
+│  │                                                           │      │
+│  │  Written by: Owner (authored), Curator (extracted/refined)│      │
+│  │  Selected by: Dispatcher (tag matching + CEO assignment)  │      │
+│  │  Read by: Workers, Reviewer, Judge, CEO (on demand)       │      │
+│  │  See skills.md for full architecture                      │      │
+│  └──────────────────────────────────────────────────────────┘      │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Retention Policy
