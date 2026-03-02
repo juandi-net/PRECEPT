@@ -2,15 +2,16 @@
 date: 2026-03-01
 project: precept
 status: approved
+version: "0.1"
 ---
 
-# PRECEPT V1 — Interface Architecture
+# PRECEPT V0.1 — Interface Architecture
 
 How a human being interacts with an agentic organization. This can make or break the whole thing.
 
 The interface isn't a dashboard, an email template, or a notification system. It's the coupling between a person and something that has its own momentum, its own dynamics, its own will. A rider doesn't control a horse — they negotiate through a saddle. A helmsman doesn't control the ocean — they mediate between wind and water through a tiller. The interface is the medium through which human intent meets organizational behavior.
 
-See `structure.md` for the organizational hierarchy, `orchestration.md` for the engine, `memory.md` for how the system remembers.
+See `structure.md` for the organizational hierarchy, `orchestration.md` for the engine, `memory.md` for how the system remembers, `skills.md` for procedural memory, `onboarding.md` for the first interface experience, `security.md` for data classification and access controls, `techstack.md` for the infrastructure that implements this interface.
 
 ## Part I — Interface Primitives
 
@@ -119,7 +120,7 @@ A beginning pianist thinks about each finger. An advanced pianist thinks about p
 
 **PRECEPT application:** The interface must accommodate both the day-one owner who needs to understand everything the system is doing, and the month-six owner who just needs the exceptions.
 
-**Day 1-30 (Onboarding and Calibration):**
+**Day 1-30 (Onboarding and Calibration):** (see `onboarding.md` for the first interaction)
 - Briefings are longer, more explanatory. CEO explains its reasoning.
 - Owner sees more of the machinery: "I'm assigning this task to the Researcher because..."
 - More Board Requests as the system learns the owner's preferences.
@@ -137,7 +138,7 @@ A beginning pianist thinks about each finger. An advanced pianist thinks about p
 - Owner intervention is strategic: redirecting, approving new initiatives, responding to Board Escalations.
 - The interface is transparent. The owner thinks through the system, not about it.
 
-This gradient isn't automatic — it's earned through demonstrated system competence and owner trust. The system doesn't assume trust; it earns it through accurate predictions, good judgment, and honest reporting of failures.
+This gradient isn't automatic — it's earned through demonstrated system competence and owner trust. The system doesn't assume trust; it earns it through accurate predictions, good judgment, and honest reporting of failures. The skills system (see `skills.md`) accelerates this progression — as the Curator extracts and refines procedural skills from evaluation patterns, agent output quality improves, which means fewer exceptions, fewer Board Requests, and briefings that can compress further. The interface becomes transparent faster because the organization behind it is getting better at its job.
 
 ### 7. Extension and Amputation — What You Gain and What You Lose
 

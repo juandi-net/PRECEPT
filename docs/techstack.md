@@ -23,7 +23,7 @@ precept/
 
 | Layer | Choice | Cost | Notes |
 |---|---|---|---|
-| Frontend | Next.js on Vercel | Free | Single-user dashboard + onboarding UI |
+| Frontend | Next.js on Vercel | Free | Single-user dashboard + onboarding UI (see `interface.md` for design philosophy) |
 | Engine | Standalone TS service on Fly.io (Docker) | Free | Orchestration, scheduling, agent dispatch |
 | Database | Supabase (Postgres + pgvector) | Free | Relational data + vector embeddings for role memory |
 | AI (all models) | CLIProxy → Claude Max subscription | $200/mo (flat) | All AI calls through one gateway. No per-token costs. |

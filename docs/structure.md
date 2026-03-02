@@ -8,7 +8,7 @@ status: approved
 
 The structure IS the product. Everything below defines how PRECEPT operates as an agentic organization. Technology implements the structure, not the other way around.
 
-See `orchestration.md` for the engine that implements this structure, `memory.md` for the knowledge architecture, `skills.md` for procedural memory and the Curator role, `security.md` for data classification and access controls.
+See `orchestration.md` for the engine that implements this structure, `memory.md` for the knowledge architecture, `skills.md` for procedural memory and the Curator role, `security.md` for data classification and access controls, `interface.md` for how the owner interacts with this organization.
 
 ## Foundational Principles
 
@@ -250,7 +250,7 @@ The hierarchy determines what each tier owns. Violating tier boundaries degrades
 
 | Tier | Owns | Does NOT do |
 |---|---|---|
-| **Board (Owner)** | Mission, values, strategy approval, escalation decisions | Operational tasks, worker management, day-to-day coordination |
+| **Board (Owner)** | Mission, values, strategy approval, escalation decisions (see `interface.md` for how the owner interacts with this hierarchy) | Operational tasks, worker management, day-to-day coordination |
 | **Board Advisor** | CEO plan review, strategic error detection | Task assignment, worker evaluation, direct worker interaction |
 | **CEO** | Strategic planning, initiative decomposition, task specs, escalation diagnosis, briefing compilation | Worker output evaluation (Judge's job), craft assessment (Reviewer's job) |
 | **Judge** | Outcome evaluation (spec compliance), accept/revise/escalate verdicts | Strategic decisions, quality assessment, task assignment, dispatch |

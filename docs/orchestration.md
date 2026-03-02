@@ -8,7 +8,7 @@ status: approved
 
 How the engine runs. Task lifecycle, Dispatcher behavior, context assembly, scheduling, and recovery.
 
-See `structure.md` for the organizational hierarchy and evaluation flow, `skills.md` for procedural memory and the Curator role. This document covers the technical orchestration that implements that structure.
+See `structure.md` for the organizational hierarchy and evaluation flow, `skills.md` for procedural memory and the Curator role, `interface.md` for the design philosophy behind briefings, reply parsing, and the Decision Room. This document covers the technical orchestration that implements that structure.
 
 ## Engine Architecture
 
@@ -238,6 +238,8 @@ Each agent receives only the context relevant to its function. No agent sees eve
 6. Owner approves (email reply webhook or Decision Room) → Dispatcher receives plan → execution begins
 
 ### Daily Briefing
+
+See `interface.md` for the briefing format, information hierarchy, and reply parsing design.
 
 **Trigger:** node-cron, e.g., 7am
 

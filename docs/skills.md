@@ -17,7 +17,7 @@ Skills serve two architectural purposes:
 
 **Interface:** Every token spent on irrelevant procedure in a system prompt is a token not spent on actual work. Skills externalize procedures into narrow `.md` files loaded on demand by the Dispatcher. System prompts stay lean — identity, role boundaries, Precepts values only. Context windows are preserved for task specs, chain context, role memory, and the work itself.
 
-See `structure.md` for the organizational hierarchy, `memory.md` for the other four memory types, `orchestration.md` for how the Dispatcher assembles worker context, `security.md` for data classification rules that apply to skills.
+See `structure.md` for the organizational hierarchy, `memory.md` for the other four memory types, `orchestration.md` for how the Dispatcher assembles worker context, `security.md` for data classification rules that apply to skills, `interface.md` for how the skills system contributes to interface maturity over time.
 
 ## Why Skills Exist
 
