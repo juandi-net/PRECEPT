@@ -239,21 +239,11 @@ export class OnboardingService {
     const tokensOut = response.usage?.completion_tokens ?? null;
     const tokensUsed = response.usage?.total_tokens ?? null;
 
-    // Strip markdown code fences if the LLM wrapped its JSON output
-    const cleaned = content.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
-
-    let parsed: CEOResponse;
-    try {
-      parsed = JSON.parse(cleaned) as CEOResponse;
-    } catch {
-      // If CEO didn't return valid JSON, wrap the raw text but preserve
-      // the current tracker so accumulated interview progress isn't wiped
-      parsed = {
-        message: content,
-        updatedTracker: currentTracker,
-        updatedFields: {},
-      };
-    }
+    // Extract JSON from the LLM response, handling:
+    // 1. Clean JSON
+    // 2. JSON wrapped in markdown fences
+    // 3. JSON preceded/followed by prose text
+    const parsed = this.extractCEOResponse(content, currentTracker);
 
     await auditDb.logEvent('ai.call', AGENT_ID, {
       model: MODELS.opus,
@@ -267,5 +257,36 @@ export class OnboardingService {
     }, tokensUsed ?? undefined);
 
     return parsed;
+  }
+
+  private extractCEOResponse(content: string, currentTracker: ExtractionTracker): CEOResponse {
+    // Try 1: Strip markdown fences and parse
+    const fenceStripped = content
+      .replace(/^```(?:json)?\s*\n?/i, '')
+      .replace(/\n?```\s*$/i, '')
+      .trim();
+
+    try {
+      return JSON.parse(fenceStripped) as CEOResponse;
+    } catch {
+      // continue to next strategy
+    }
+
+    // Try 2: Find the outermost JSON object in the response (handles prose wrapping)
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[0]) as CEOResponse;
+      } catch {
+        // continue to fallback
+      }
+    }
+
+    // Fallback: treat the whole response as the conversational message
+    return {
+      message: content,
+      updatedTracker: currentTracker,
+      updatedFields: {},
+    };
   }
 }
