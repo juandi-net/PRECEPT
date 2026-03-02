@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import type { ConversationMessage } from '@precept/shared';
 import { ChatMessage } from './ChatMessage';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface ChatPanelProps {
   messages: ConversationMessage[];
@@ -46,21 +48,22 @@ export function ChatPanel({ messages, onSendMessage, isLoading, disabled }: Chat
       {/* Input */}
       <form onSubmit={handleSubmit} className="border-t border-neutral-200 p-4">
         <div className="flex gap-3">
-          <input
+          <Input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={disabled ? 'Interview complete' : 'Type your message...'}
             disabled={isLoading || disabled}
-            className="flex-1 rounded-xl border border-neutral-300 px-4 py-3 text-sm focus:outline-none focus:border-neutral-500 disabled:opacity-50"
+            className="flex-1 rounded-xl px-4 py-3 h-auto"
           />
-          <button
+          <Button
             type="submit"
             disabled={!input.trim() || isLoading || disabled}
-            className="rounded-xl bg-neutral-900 px-6 py-3 text-sm text-white font-medium hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            size="lg"
+            className="rounded-xl px-6"
           >
             Send
-          </button>
+          </Button>
         </div>
       </form>
     </div>

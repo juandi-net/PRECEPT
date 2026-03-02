@@ -9,6 +9,16 @@ import {
   type PreceptsField,
   type FieldState,
 } from '@precept/shared';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ConfirmationViewProps {
   draft: PreceptsDraft;
@@ -16,11 +26,11 @@ interface ConfirmationViewProps {
   isLaunching: boolean;
 }
 
-const STATE_OPTIONS: { value: FieldState; label: string; color: string }[] = [
-  { value: 'confirmed', label: 'Confirmed', color: 'bg-green-500' },
-  { value: 'hypothesis', label: 'Hypothesis', color: 'bg-yellow-500' },
-  { value: 'research_pending', label: 'Research Pending', color: 'bg-orange-500' },
-  { value: 'open_question', label: 'Open Question', color: 'bg-red-500' },
+const STATE_OPTIONS: { value: FieldState; label: string }[] = [
+  { value: 'confirmed', label: 'Confirmed' },
+  { value: 'hypothesis', label: 'Hypothesis' },
+  { value: 'research_pending', label: 'Research Pending' },
+  { value: 'open_question', label: 'Open Question' },
 ];
 
 export function ConfirmationView({ draft, onLockAndLaunch, isLaunching }: ConfirmationViewProps) {
@@ -54,27 +64,31 @@ export function ConfirmationView({ draft, onLockAndLaunch, isLaunching }: Confir
             <div key={fieldName} className="border rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold">{FIELD_LABELS[fieldName]}</h3>
-                <select
+                <Select
                   value={field.state}
-                  onChange={(e) => updateField(fieldName, { state: e.target.value as FieldState })}
-                  className="text-xs border rounded px-2 py-1"
+                  onValueChange={(value) => updateField(fieldName, { state: value as FieldState })}
                 >
-                  {STATE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
+                  <SelectTrigger size="sm" className="w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <textarea
+              <Textarea
                 value={field.content}
                 onChange={(e) => updateField(fieldName, { content: e.target.value })}
-                className="w-full text-sm border rounded-lg p-3 min-h-[60px] focus:outline-none focus:border-neutral-500"
+                className="min-h-[60px]"
               />
-              <input
+              <Input
                 type="text"
                 value={field.notes || ''}
                 onChange={(e) => updateField(fieldName, { notes: e.target.value || null })}
                 placeholder="Add a note..."
-                className="w-full text-xs border rounded-lg px-3 py-2 mt-2 text-neutral-500 focus:outline-none focus:border-neutral-500"
+                className="mt-2 text-xs text-muted-foreground"
               />
             </div>
           );
@@ -90,13 +104,14 @@ export function ConfirmationView({ draft, onLockAndLaunch, isLaunching }: Confir
       </div>
 
       <div className="p-6 border-t border-neutral-200">
-        <button
+        <Button
           onClick={() => onLockAndLaunch(localDraft)}
           disabled={isLaunching}
-          className="w-full rounded-xl bg-neutral-900 py-4 text-white font-semibold hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          size="lg"
+          className="w-full rounded-xl py-6 text-base font-semibold"
         >
           {isLaunching ? 'Launching...' : 'Lock & Launch'}
-        </button>
+        </Button>
         <p className="text-xs text-neutral-400 text-center mt-2">
           This finalizes your Precepts and starts the system. Incomplete fields become research tasks.
         </p>
