@@ -3,6 +3,7 @@ import { buildMessages, buildOpeningMessages } from '../ai/prompts/ceo-onboardin
 import * as onboardingDb from '../db/onboarding.js';
 import * as preceptsDb from '../db/precepts.js';
 import * as auditDb from '../db/audit.js';
+import { SeedSkillService } from './skills.js';
 import type {
   StartSessionResponse,
   SendMessageResponse,
@@ -155,6 +156,11 @@ export class OnboardingService {
       preceptsId: precepts.id,
       sessionId,
     });
+
+    // Step 3 from onboarding.md Lock & Launch sequence:
+    // Generate seed skill files from Precepts content
+    const skillService = new SeedSkillService();
+    await skillService.generateSeedSkills(finalDraft);
 
     return { preceptsId: precepts.id };
   }

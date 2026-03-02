@@ -9,7 +9,9 @@ export type AuditEventType =
   | 'onboarding.document_removed'
   | 'precepts.created'
   | 'precepts.updated'
-  | 'ai.call';
+  | 'ai.call'
+  | 'skills.seed_generated'
+  | 'skills.seed_failed';
 
 export interface AuditEntry {
   id: string;

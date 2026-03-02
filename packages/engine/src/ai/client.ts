@@ -11,4 +11,5 @@ export const ai = new OpenAI({ baseURL, apiKey });
 
 export const MODELS = {
   opus: process.env.CLIPROXY_MODEL_OPUS || 'claude-opus-4-6',
+  sonnet: process.env.CLIPROXY_MODEL_SONNET || 'claude-sonnet-4-6',
 } as const;

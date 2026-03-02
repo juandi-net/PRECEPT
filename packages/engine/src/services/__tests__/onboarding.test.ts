@@ -10,7 +10,7 @@ vi.mock('../../ai/client.js', () => ({
       },
     },
   },
-  MODELS: { opus: 'test-model' },
+  MODELS: { opus: 'test-model', sonnet: 'test-model-sonnet' },
 }));
 
 // Mock the DB
@@ -26,6 +26,12 @@ vi.mock('../../db/precepts.js', () => ({
 
 vi.mock('../../db/audit.js', () => ({
   logEvent: vi.fn(),
+}));
+
+vi.mock('../skills.js', () => ({
+  SeedSkillService: vi.fn().mockImplementation(() => ({
+    generateSeedSkills: vi.fn().mockResolvedValue([]),
+  })),
 }));
 
 vi.mock('@precept/shared', async () => {
