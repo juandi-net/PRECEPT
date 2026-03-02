@@ -69,7 +69,7 @@ export class OnboardingService {
     ];
 
     // Build prompt with tracker context and call CEO
-    const messages = buildMessages(conversation, session.extractionTracker, session.preceptsDraft);
+    const messages = buildMessages(conversation, session.extractionTracker, session.preceptsDraft, session.contextDocuments);
     const ceoResponse = await this.callCEO(messages, session.extractionTracker);
 
     // Merge updated fields into draft
