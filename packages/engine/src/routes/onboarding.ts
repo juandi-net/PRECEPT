@@ -60,6 +60,15 @@ onboarding.get('/status', async (c) => {
   return c.json({ session });
 });
 
+function inferMimeType(file: File): string {
+  if (file.type) return file.type;
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  if (ext === 'md') return 'text/markdown';
+  if (ext === 'txt') return 'text/plain';
+  if (ext === 'pdf') return 'application/pdf';
+  return '';
+}
+
 onboarding.post('/:sessionId/documents', async (c) => {
   const sessionId = c.req.param('sessionId');
 
@@ -75,7 +84,7 @@ onboarding.post('/:sessionId/documents', async (c) => {
       files.push({
         buffer: Buffer.from(arrayBuffer),
         filename: f.name,
-        mimeType: f.type,
+        mimeType: inferMimeType(f),
       });
     }
 
