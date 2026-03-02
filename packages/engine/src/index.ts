@@ -6,7 +6,7 @@ import { onboarding } from './routes/onboarding.js';
 const app = new Hono();
 
 app.use('/*', cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin) => origin,
 }));
 
 app.get('/health', (c) => c.json({ status: 'ok' }));

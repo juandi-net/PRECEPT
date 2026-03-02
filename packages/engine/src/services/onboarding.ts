@@ -183,9 +183,12 @@ export class OnboardingService {
     const tokensOut = response.usage?.completion_tokens ?? null;
     const tokensUsed = response.usage?.total_tokens ?? null;
 
+    // Strip markdown code fences if the LLM wrapped its JSON output
+    const cleaned = content.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+
     let parsed: CEOResponse;
     try {
-      parsed = JSON.parse(content) as CEOResponse;
+      parsed = JSON.parse(cleaned) as CEOResponse;
     } catch {
       // If CEO didn't return valid JSON, wrap the raw text but preserve
       // the current tracker so accumulated interview progress isn't wiped
