@@ -99,11 +99,17 @@ ${docsContent}`,
   }
 
   // Add conversation history
+  // CEO messages are re-wrapped as JSON to keep the model primed for JSON output.
+  // Without this, the model sees its prior turn as plain text and may abandon JSON format.
   for (const msg of conversation) {
-    messages.push({
-      role: msg.role === 'owner' ? 'user' : 'assistant',
-      content: msg.role === 'ceo' ? msg.content : msg.content,
-    });
+    if (msg.role === 'ceo') {
+      messages.push({
+        role: 'assistant',
+        content: JSON.stringify({ message: msg.content, updatedTracker: tracker, updatedFields: {} }),
+      });
+    } else {
+      messages.push({ role: 'user', content: msg.content });
+    }
   }
 
   return messages;
