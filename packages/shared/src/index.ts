@@ -1,3 +1,3 @@
-export * from './precepts.js';
-export * from './onboarding.js';
-export * from './audit.js';
+export * from './precepts';
+export * from './onboarding';
+export * from './audit';

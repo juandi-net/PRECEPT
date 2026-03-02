@@ -1,4 +1,4 @@
-import type { PreceptsDraft } from './precepts.js';
+import type { PreceptsDraft } from './precepts';
 
 export type SessionStatus = 'in_progress' | 'completed' | 'abandoned';
 
