@@ -7,9 +7,9 @@
     "packages/web"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces --if-present",
-    "dev:engine": "npm run dev --workspace=packages/engine",
-    "dev:web": "npm run dev --workspace=packages/web"
+    "build": "bun run --cwd packages/shared build; bun run --cwd packages/engine build",
+    "test": "bun run --cwd packages/engine test",
+    "dev:engine": "bun run --cwd packages/engine dev",
+    "dev:web": "bun run --cwd packages/web dev"
   }
 }

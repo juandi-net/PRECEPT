@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "setup": "ln -s \"$CONDUCTOR_ROOT_PATH/.env\" .env && bun install",
+    "dev:engine": "bun run dev:engine",
+    "dev:web": "bun run dev:web"
+  }
+}

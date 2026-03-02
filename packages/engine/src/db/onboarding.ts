@@ -20,7 +20,10 @@ export async function getSession(id: string): Promise<OnboardingSession | null> 
     .eq('id', id)
     .single();
 
-  if (error) return null;
+  if (error) {
+    if (error.code === 'PGRST116') return null;
+    throw new Error(`Failed to get session: ${error.message}`);
+  }
   return mapSession(data);
 }
 
