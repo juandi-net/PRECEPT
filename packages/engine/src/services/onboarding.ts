@@ -34,7 +34,7 @@ export class OnboardingService {
     };
 
     const messages = buildOpeningMessages();
-    const ceoResponse = await this.callCEO(messages);
+    const ceoResponse = await this.callCEO(messages, initialTracker);
 
     // Save CEO's opening message and tracker state
     const conversation: ConversationMessage[] = [
@@ -69,7 +69,7 @@ export class OnboardingService {
 
     // Build prompt with tracker context and call CEO
     const messages = buildMessages(conversation, session.extractionTracker, session.preceptsDraft);
-    const ceoResponse = await this.callCEO(messages);
+    const ceoResponse = await this.callCEO(messages, session.extractionTracker);
 
     // Merge updated fields into draft
     const updatedDraft = { ...session.preceptsDraft };
@@ -163,7 +163,8 @@ export class OnboardingService {
   }
 
   private async callCEO(
-    messages: Array<{ role: string; content: string }>
+    messages: Array<{ role: string; content: string }>,
+    currentTracker: ExtractionTracker
   ): Promise<CEOResponse> {
     const startMs = Date.now();
 
@@ -186,16 +187,11 @@ export class OnboardingService {
     try {
       parsed = JSON.parse(content) as CEOResponse;
     } catch {
-      // If CEO didn't return valid JSON, wrap the raw text
+      // If CEO didn't return valid JSON, wrap the raw text but preserve
+      // the current tracker so accumulated interview progress isn't wiped
       parsed = {
         message: content,
-        updatedTracker: {
-          coveredTopics: [],
-          currentPhase: 1,
-          fieldsExtracted: [],
-          fieldsRemaining: [...PRECEPTS_FIELDS],
-          activeThread: null,
-        },
+        updatedTracker: currentTracker,
         updatedFields: {},
       };
     }
