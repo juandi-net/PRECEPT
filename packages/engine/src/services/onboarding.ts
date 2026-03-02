@@ -10,8 +10,9 @@ import type {
   ConversationMessage,
   ExtractionTracker,
   OnboardingSession,
+  ContextDocument,
 } from '@precept/shared';
-import { PRECEPTS_FIELDS, type PreceptsDraft, type PreceptsField, type PreceptsFieldName } from '@precept/shared';
+import { PRECEPTS_FIELDS, extractText, ALLOWED_MIME_TYPES, type PreceptsDraft, type PreceptsField, type PreceptsFieldName } from '@precept/shared';
 
 const AGENT_ID = 'ceo-onboarding';
 
@@ -68,7 +69,7 @@ export class OnboardingService {
     ];
 
     // Build prompt with tracker context and call CEO
-    const messages = buildMessages(conversation, session.extractionTracker, session.preceptsDraft);
+    const messages = buildMessages(conversation, session.extractionTracker, session.preceptsDraft, session.contextDocuments);
     const ceoResponse = await this.callCEO(messages, session.extractionTracker);
 
     // Merge updated fields into draft
@@ -160,6 +161,61 @@ export class OnboardingService {
 
   async getSessionStatus(sessionId: string): Promise<OnboardingSession | null> {
     return onboardingDb.getSession(sessionId);
+  }
+
+  async addDocuments(
+    sessionId: string,
+    files: Array<{ buffer: Buffer; filename: string; mimeType: string }>
+  ): Promise<ContextDocument[]> {
+    const session = await onboardingDb.getSession(sessionId);
+    if (!session) throw new Error(`Session not found: ${sessionId}`);
+    if (session.status !== 'in_progress') throw new Error(`Session is ${session.status}`);
+
+    const newDocs: ContextDocument[] = [];
+    for (const file of files) {
+      if (!ALLOWED_MIME_TYPES.includes(file.mimeType as any)) {
+        throw new Error(`Unsupported file type: ${file.mimeType}`);
+      }
+      const content = await extractText(file.buffer, file.mimeType);
+      newDocs.push({
+        filename: file.filename,
+        mimeType: file.mimeType,
+        content,
+        uploadedAt: new Date().toISOString(),
+      });
+    }
+
+    const updated = [...(session.contextDocuments ?? []), ...newDocs];
+    await onboardingDb.updateSession(sessionId, { contextDocuments: updated });
+
+    await auditDb.logEvent('onboarding.documents_added', AGENT_ID, {
+      sessionId,
+      filenames: newDocs.map((d) => d.filename),
+    });
+
+    return updated;
+  }
+
+  async removeDocument(sessionId: string, index: number): Promise<ContextDocument[]> {
+    const session = await onboardingDb.getSession(sessionId);
+    if (!session) throw new Error(`Session not found: ${sessionId}`);
+    if (session.status !== 'in_progress') throw new Error(`Session is ${session.status}`);
+
+    const docs = session.contextDocuments ?? [];
+    if (index < 0 || index >= docs.length) throw new Error(`Invalid document index: ${index}`);
+
+    const removed = docs[index];
+    const updated = docs.filter((_, i) => i !== index);
+    await onboardingDb.updateSession(sessionId, {
+      contextDocuments: updated.length > 0 ? updated : null,
+    });
+
+    await auditDb.logEvent('onboarding.document_removed', AGENT_ID, {
+      sessionId,
+      filename: removed.filename,
+    });
+
+    return updated;
   }
 
   private async callCEO(

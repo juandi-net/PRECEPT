@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { ConversationMessage, PreceptsDraft } from '@precept/shared';
+import type { ConversationMessage, PreceptsDraft, ContextDocument } from '@precept/shared';
 import { ChatPanel } from '../../components/chat/ChatPanel';
 import { PreceptsPanel } from '../../components/precepts/PreceptsPanel';
 import { ConfirmationView } from '../../components/precepts/ConfirmationView';
@@ -17,6 +17,8 @@ export default function OnboardingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('interview');
   const [error, setError] = useState<string | null>(null);
+  const [documents, setDocuments] = useState<ContextDocument[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Start session on mount
   useEffect(() => {
@@ -87,6 +89,29 @@ export default function OnboardingPage() {
     }
   }, [sessionId]);
 
+  const handleUploadFiles = useCallback(async (files: File[]) => {
+    if (!sessionId) return;
+    setIsUploading(true);
+    try {
+      const result = await api.uploadDocuments(sessionId, files);
+      setDocuments(result.documents);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsUploading(false);
+    }
+  }, [sessionId]);
+
+  const handleRemoveDocument = useCallback(async (index: number) => {
+    if (!sessionId) return;
+    try {
+      const result = await api.removeDocument(sessionId, index);
+      setDocuments(result.documents);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  }, [sessionId]);
+
   if (viewMode === 'complete') {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -118,6 +143,10 @@ export default function OnboardingPage() {
           messages={messages}
           onSendMessage={handleSendMessage}
           isLoading={isLoading}
+          documents={documents}
+          onUploadFiles={handleUploadFiles}
+          onRemoveDocument={handleRemoveDocument}
+          isUploading={isUploading}
         />
       </div>
 

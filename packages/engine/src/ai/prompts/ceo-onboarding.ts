@@ -1,4 +1,4 @@
-import type { ConversationMessage, ExtractionTracker } from '@precept/shared';
+import type { ConversationMessage, ExtractionTracker, ContextDocument } from '@precept/shared';
 import type { PreceptsDraft } from '@precept/shared';
 
 export const CEO_ONBOARDING_SYSTEM_PROMPT = `You are the CEO of PRECEPT, an AI-powered business operating system. You are conducting an onboarding interview with the business owner — your Board.
@@ -61,7 +61,8 @@ The valid field names are: identity, product_service, stage, success_definition,
 export function buildMessages(
   conversation: ConversationMessage[],
   tracker: ExtractionTracker,
-  draft: PreceptsDraft
+  draft: PreceptsDraft,
+  contextDocuments?: ContextDocument[] | null,
 ): Array<{ role: string; content: string }> {
   const messages: Array<{ role: string; content: string }> = [
     { role: 'system', content: CEO_ONBOARDING_SYSTEM_PROMPT },
@@ -79,6 +80,23 @@ Topics covered: ${tracker.coveredTopics.join(', ') || 'none yet'}
 ${JSON.stringify(draft, null, 2)}`,
     },
   ];
+
+  if (contextDocuments && contextDocuments.length > 0) {
+    const docsContent = contextDocuments
+      .map((doc) => `### ${doc.filename}\n${doc.content}`)
+      .join('\n\n');
+
+    messages.push({
+      role: 'system',
+      content: `## Background Documents
+The owner has provided the following documents for context. Use them to:
+- Skip topics already clearly covered in these documents
+- Ask deeper follow-up questions instead of surface-level ones
+- Pre-populate the extraction tracker with information these documents provide
+
+${docsContent}`,
+    });
+  }
 
   // Add conversation history
   for (const msg of conversation) {

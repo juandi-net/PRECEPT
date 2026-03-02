@@ -28,6 +28,14 @@ vi.mock('../../db/audit.js', () => ({
   logEvent: vi.fn(),
 }));
 
+vi.mock('@precept/shared', async () => {
+  const actual = await vi.importActual('@precept/shared');
+  return {
+    ...actual,
+    extractText: vi.fn().mockResolvedValue('extracted text content'),
+  };
+});
+
 import { ai } from '../../ai/client.js';
 import * as onboardingDb from '../../db/onboarding.js';
 import * as preceptsDb from '../../db/precepts.js';
@@ -47,7 +55,7 @@ describe('OnboardingService', () => {
         id: 'session-1',
         status: 'in_progress' as const,
         conversation: [],
-        preceptsDraft: {},
+        preceptsDraft: {} as any,
         extractionTracker: {
           coveredTopics: [],
           currentPhase: 1,
@@ -59,6 +67,7 @@ describe('OnboardingService', () => {
           ],
           activeThread: null,
         },
+        contextDocuments: null,
         startedAt: new Date().toISOString(),
         completedAt: null,
       };
@@ -101,7 +110,7 @@ describe('OnboardingService', () => {
         conversation: [
           { role: 'ceo' as const, content: 'Hello!', timestamp: new Date().toISOString() },
         ],
-        preceptsDraft: {},
+        preceptsDraft: {} as any,
         extractionTracker: {
           coveredTopics: [],
           currentPhase: 1,
@@ -113,6 +122,7 @@ describe('OnboardingService', () => {
           ],
           activeThread: null,
         },
+        contextDocuments: null,
         startedAt: new Date().toISOString(),
         completedAt: null,
       };
@@ -198,6 +208,7 @@ describe('OnboardingService', () => {
           fieldsRemaining: [],
           activeThread: null,
         },
+        contextDocuments: null,
         startedAt: new Date().toISOString(),
         completedAt: null,
       });
@@ -227,6 +238,97 @@ describe('OnboardingService', () => {
           stateChanges: expect.arrayContaining(['identity']),
         })
       );
+    });
+  });
+
+  describe('addDocuments', () => {
+    it('extracts text from files and appends to session', async () => {
+      vi.mocked(onboardingDb.getSession).mockResolvedValue({
+        id: 'session-1',
+        status: 'in_progress' as const,
+        conversation: [],
+        preceptsDraft: {} as any,
+        extractionTracker: {
+          coveredTopics: [],
+          currentPhase: 1,
+          fieldsExtracted: [],
+          fieldsRemaining: ['identity'],
+          activeThread: null,
+        },
+        contextDocuments: null,
+        startedAt: new Date().toISOString(),
+        completedAt: null,
+      });
+
+      const result = await service.addDocuments('session-1', [
+        { buffer: Buffer.from('My business plan'), filename: 'plan.txt', mimeType: 'text/plain' },
+      ]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].filename).toBe('plan.txt');
+      expect(result[0].content).toBe('extracted text content');
+      expect(onboardingDb.updateSession).toHaveBeenCalledWith('session-1', {
+        contextDocuments: expect.arrayContaining([
+          expect.objectContaining({ filename: 'plan.txt' }),
+        ]),
+      });
+    });
+
+    it('throws on unsupported MIME type', async () => {
+      vi.mocked(onboardingDb.getSession).mockResolvedValue({
+        id: 'session-1',
+        status: 'in_progress',
+        conversation: [],
+        preceptsDraft: {} as any,
+        extractionTracker: { coveredTopics: [], currentPhase: 1, fieldsExtracted: [], fieldsRemaining: [], activeThread: null },
+        contextDocuments: null,
+        startedAt: new Date().toISOString(),
+        completedAt: null,
+      });
+
+      await expect(
+        service.addDocuments('session-1', [
+          { buffer: Buffer.from('data'), filename: 'photo.png', mimeType: 'image/png' },
+        ])
+      ).rejects.toThrow('Unsupported file type');
+    });
+  });
+
+  describe('removeDocument', () => {
+    it('removes document at index and updates session', async () => {
+      vi.mocked(onboardingDb.getSession).mockResolvedValue({
+        id: 'session-1',
+        status: 'in_progress',
+        conversation: [],
+        preceptsDraft: {} as any,
+        extractionTracker: { coveredTopics: [], currentPhase: 1, fieldsExtracted: [], fieldsRemaining: [], activeThread: null },
+        contextDocuments: [
+          { filename: 'plan.txt', mimeType: 'text/plain', content: 'plan content', uploadedAt: '2026-03-01T00:00:00Z' },
+          { filename: 'notes.md', mimeType: 'text/markdown', content: 'notes content', uploadedAt: '2026-03-01T00:00:00Z' },
+        ],
+        startedAt: new Date().toISOString(),
+        completedAt: null,
+      });
+
+      const result = await service.removeDocument('session-1', 0);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].filename).toBe('notes.md');
+    });
+
+    it('throws on invalid index', async () => {
+      vi.mocked(onboardingDb.getSession).mockResolvedValue({
+        id: 'session-1',
+        status: 'in_progress',
+        conversation: [],
+        preceptsDraft: {} as any,
+        extractionTracker: { coveredTopics: [], currentPhase: 1, fieldsExtracted: [], fieldsRemaining: [], activeThread: null },
+        contextDocuments: [],
+        startedAt: new Date().toISOString(),
+        completedAt: null,
+      });
+
+      await expect(service.removeDocument('session-1', 5)).rejects.toThrow('Invalid document index');
     });
   });
 });

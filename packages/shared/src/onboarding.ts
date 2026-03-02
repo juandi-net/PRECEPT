@@ -1,4 +1,5 @@
 import type { PreceptsDraft } from './precepts';
+import type { ContextDocument } from './documents';
 
 export type SessionStatus = 'in_progress' | 'completed' | 'abandoned';
 
@@ -8,6 +9,7 @@ export interface OnboardingSession {
   conversation: ConversationMessage[];
   preceptsDraft: PreceptsDraft;
   extractionTracker: ExtractionTracker;
+  contextDocuments: ContextDocument[] | null;
   startedAt: string;
   completedAt: string | null;
 }

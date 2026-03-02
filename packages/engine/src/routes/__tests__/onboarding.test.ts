@@ -7,6 +7,8 @@ vi.mock('../../services/onboarding.js', () => {
   OnboardingService.prototype.sendMessage = vi.fn();
   OnboardingService.prototype.completeSession = vi.fn();
   OnboardingService.prototype.getSessionStatus = vi.fn();
+  OnboardingService.prototype.addDocuments = vi.fn();
+  OnboardingService.prototype.removeDocument = vi.fn();
   return { OnboardingService };
 });
 
@@ -89,6 +91,7 @@ describe('Onboarding Routes', () => {
         conversation: [],
         preceptsDraft: {} as any,
         extractionTracker: {} as any,
+        contextDocuments: null,
         startedAt: new Date().toISOString(),
         completedAt: null,
       });
@@ -106,6 +109,41 @@ describe('Onboarding Routes', () => {
       const res = await app.request('/api/onboarding/status?sessionId=nonexistent');
 
       expect(res.status).toBe(404);
+    });
+  });
+
+  describe('POST /api/onboarding/:sessionId/documents', () => {
+    it('returns 200 with updated document list', async () => {
+      vi.mocked(OnboardingService.prototype.addDocuments).mockResolvedValue([
+        { filename: 'plan.txt', mimeType: 'text/plain', content: 'My plan', uploadedAt: '2026-03-01T00:00:00Z' },
+      ]);
+
+      const formData = new FormData();
+      formData.append('files', new File(['My plan'], 'plan.txt', { type: 'text/plain' }));
+
+      const res = await app.request('/api/onboarding/session-1/documents', {
+        method: 'POST',
+        body: formData,
+      });
+      const body = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(body.documents).toHaveLength(1);
+      expect(body.documents[0].filename).toBe('plan.txt');
+    });
+  });
+
+  describe('DELETE /api/onboarding/:sessionId/documents/:index', () => {
+    it('returns 200 with updated document list', async () => {
+      vi.mocked(OnboardingService.prototype.removeDocument).mockResolvedValue([]);
+
+      const res = await app.request('/api/onboarding/session-1/documents/0', {
+        method: 'DELETE',
+      });
+      const body = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(body.documents).toEqual([]);
     });
   });
 });
