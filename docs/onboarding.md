@@ -8,7 +8,7 @@ status: approved
 
 How the system gets its foundation. The onboarding interview produces the Precepts document — the CEO's persistent strategic context. Everything else depends on this document existing.
 
-See `structure.md` for the organizational hierarchy, `orchestration.md` for the engine that runs after onboarding, `security.md` for data classification rules.
+See `structure.md` for the organizational hierarchy, `orchestration.md` for the engine that runs after onboarding, `security.md` for data classification rules, `skills.md` for how onboarding seeds the skills system.
 
 ## Why Onboarding Is Sprint 1
 
@@ -161,9 +161,10 @@ Split screen. Left = conversation chat. Right = Precepts building in real-time.
 
 1. Frontend POSTs to engine API endpoint (`/api/onboarding/complete`)
 2. Engine writes the finalized Precepts to Supabase (classification: 🟡 INTERNAL)
-3. Engine triggers the first CEO planning cycle directly — this is event-driven, not cron-scheduled
+3. Engine generates seed skill files from Precepts content — communication-tone from values/culture, data-classification from Data Policy, quality-baseline from quality expectations (see `skills.md` — Bootstrapping)
+4. Engine triggers the first CEO planning cycle directly — this is event-driven, not cron-scheduled
 4. First CEO cycle receives a simplified context: just the Precepts + owner notes from confirmation. The Scribe does not run (no activity to compress yet). Normal Scribe behavior kicks in from the second CEO invocation onward.
-5. CEO produces the first weekly plan — first tasks will likely be filling research-pending gaps
+5. CEO produces the first weekly plan — first tasks will likely be filling research-pending gaps and identifying skill gaps ("We need a prospect-identification skill but don't have one yet")
 6. Board Advisor reviews the plan
 7. Owner approves → Dispatcher starts execution
 

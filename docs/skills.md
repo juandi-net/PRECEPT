@@ -2,13 +2,22 @@
 date: 2026-03-01
 project: precept
 status: draft
+version: "0.1"
 ---
 
-# PRECEPT V1 — Skills Architecture
+# PRECEPT V0.1 — Skills Architecture
 
-How agents learn to do things well. Skills are externalized procedural knowledge — loaded on demand, not carried permanently.
+The fifth memory type — procedural memory. How agents learn to do things well.
 
-Memory is what the system knows. Skills are how the system works. Together they make month 3 fundamentally better than month 1. Memory compounds knowledge. Skills compound capability.
+The four types in `memory.md` cover what the system knows: facts, decisions, performance, operational state. Skills cover how the system works — repeatable procedures, quality criteria, anti-patterns. Memory without skills means the system knows things but applies them inconsistently. Skills without memory means the system has procedures but no domain knowledge to execute against. Together they compound: every cycle makes the system better at doing the right things the right way.
+
+Skills serve two architectural purposes:
+
+**Structure:** Skills are the self-learning loop's mechanism. The Reviewer observes craft quality. The Judge observes outcomes. The Curator reads these patterns and produces refined skill files. Workers receive better procedures on future tasks. This is how month 3 is fundamentally better than month 1 — not just more data, but better procedures.
+
+**Interface:** Every token spent on irrelevant procedure in a system prompt is a token not spent on actual work. Skills externalize procedures into narrow `.md` files loaded on demand by the Dispatcher. System prompts stay lean — identity, role boundaries, Precepts values only. Context windows are preserved for task specs, chain context, role memory, and the work itself.
+
+See `structure.md` for the organizational hierarchy, `memory.md` for the other four memory types, `orchestration.md` for how the Dispatcher assembles worker context, `security.md` for data classification rules that apply to skills.
 
 ## Why Skills Exist
 
@@ -189,7 +198,7 @@ Existing skills updated based on new evidence. A skill is never "done" — it's 
 - CEO identifies a strategic shift that changes how a task type should be executed → skill needs realignment with new strategy
 - Owner feedback contradicts a skill's guidance → skill needs correction
 
-**Versioning:** Every refinement increments the version number. The revision history captures what changed and why. Old versions are archived, not deleted — if a refinement makes things worse, the Curator or CEO can roll back.
+**Versioning:** Every refinement increments the version number. The revision history captures what changed and why. Old versions live in git history — if a refinement makes things worse, the Curator or CEO can roll back.
 
 ## The Curator
 
@@ -206,7 +215,7 @@ A dedicated system-level role that creates and refines skills. Not a worker — 
 | Reviewer craft patterns | Performance Memory | "What quality patterns has the Reviewer observed?" |
 | Judge rejection/acceptance patterns | Audit Log | "What keeps failing? What keeps succeeding?" |
 | Lesson artifacts | Institutional Memory | "What has the organization learned?" |
-| Existing skills | Skills table | "What procedures already exist? What's missing?" |
+| Existing skills | skill_index (Supabase) + skill files (monorepo) | "What procedures already exist? What's missing?" |
 | CEO planning notes | Decision Log | "Has the CEO identified procedural gaps?" |
 
 ### What the Curator Produces
@@ -453,11 +462,9 @@ Initial skill categories, organized by role. Not exhaustive — grows organicall
 - Role eliminated or restructured
 - Superseded by a more comprehensive skill
 
-Deprecated skills are preserved in the audit log. If the strategy pivots back, they can be restored and refined rather than recreated from scratch.
+Deprecated skills stay in git history and remain in the skill_index as `deprecated`. If the strategy pivots back, they can be restored by changing their status back to `active` — no need to recreate from scratch.
 
 ## Storage
-
-### File-Based with Postgres Index
 
 Skills are markdown files. The actual content — procedures, quality criteria, anti-patterns — lives as `.md` files in the monorepo. Postgres holds a lightweight index for the Dispatcher to query against.
 
@@ -532,101 +539,27 @@ The index is what the Dispatcher queries: "Give me active skills for role:resear
 
 ## Integration with Existing Architecture
 
-### Skills + Role Memory
+Skills touch every subsystem. The table below shows how; the referenced docs are the canonical source for each subsystem's behavior.
 
-Distinct and complementary. Both injected into worker context by the Dispatcher, but serving different purposes.
-
-| | Role Memory | Skills |
+| Subsystem | How skills connect | Direction |
 |---|---|---|
-| **Contains** | Facts, findings, data, contacts | Procedures, steps, quality criteria |
-| **Answers** | "What do I know about this?" | "How should I do this?" |
-| **Grows by** | Worker self-report on every task | Curator extraction from patterns |
-| **Retrieval** | Semantic search (pgvector) | Tag matching + explicit assignment |
-| **Volume** | Hundreds of entries over months | Dozens of skills, curated |
-| **Example** | "RoboTech: 50-person team, Series B, uses Isaac Sim" | "When researching prospects, always check funding stage, team size, and tech stack" |
+| **Role Memory** | Both co-loaded by Dispatcher into worker context. Role Memory answers "what do I know?" Skills answer "how should I do this?" Retrieval differs: semantic search (pgvector) for memory, tag matching for skills. | Parallel inputs → worker |
+| **Performance Memory** | Performance data informs skill loading. Low acceptance rate on a task type → Dispatcher loads the relevant skill with emphasis on anti-patterns. High acceptance rate → lighter skill weight. Skill effectiveness is measured by downstream acceptance rates. | Performance → skill selection |
+| **Evaluation Flow** | Reviewer and Judge are both skill consumers (craft-evaluation, outcome-evaluation skills) and skill feeders (their patterns become Curator input). The compounding loop: workers receive better skills → produce better output → evaluators observe higher-bar patterns → Curator refines skills again. | Bidirectional |
+| **CEO Planning** | CEO consumes leadership-only skills (strategic-planning, post-mortem, board-request-composition, initiative-decomposition). CEO can also author new skills from successful initiative patterns. | Bidirectional |
+| **Onboarding** | Owner can author seed skills during onboarding — communication-tone from Precepts values, data-classification from Data Policy, quality-baseline from expectations. Post-onboarding, CEO's first cycle identifies skill gaps → research tasks or authored skills fill them. | Onboarding → seed skills |
 
-### Skills + Performance Memory
+## Organizational Impact
 
-Performance profiles tell the Dispatcher what a worker is good at. Skills tell the worker how to be good at it. Connected:
+Skills introduce one new role: the **Curator** (Sonnet 4.6 via CLIProxy), a system-level batch role alongside the Scribe. See `structure.md` for the full organizational hierarchy.
 
-- Worker-4 has low acceptance rate on competitive analysis tasks → Dispatcher loads the competitive-analysis skill with extra emphasis on anti-patterns
-- Worker-4 has high acceptance rate on prospect identification → Dispatcher may load the prospect-identification skill in "reference" mode (lighter context weight) since the worker already performs well
-- Over time, if a skill consistently improves acceptance rates for workers who receive it, that's evidence the skill is good. If not, it needs refinement.
-
-### Skills + Evaluation Flow
-
-The Reviewer and Judge are both skill consumers and skill feeders.
-
-**As consumers:** The Reviewer can load the craft-evaluation skill. The Judge can load the outcome-evaluation skill. These leadership-only skills make evaluation consistent and improvable — the rubric itself is a skill that can be refined.
-
-**As feeders:** Every Reviewer craft pattern and Judge rejection pattern is raw material for the Curator. The evaluation flow generates the signal. The Curator transforms the signal into skills. The skills improve future worker output. The evaluation flow generates new signal. The loop compounds.
-
-```
-Worker output
-  → Reviewer evaluates (using craft-evaluation skill)
-  → Judge evaluates (using outcome-evaluation skill)
-  → Patterns accumulate in Performance Memory + Audit Log
-  → Curator reads patterns → creates/refines skills
-  → Dispatcher loads refined skills into future worker context
-  → Worker output improves
-  → Reviewer/Judge see improvement → new, higher-bar patterns
-  → Curator refines skills again
-  → Loop compounds
-```
-
-### Skills + CEO Planning
-
-The CEO is also a skill consumer. Leadership-only skills structure how the CEO approaches different types of strategic work:
-
-- **Weekly planning cycle:** CEO loads strategic-planning skill. Ensures consistent planning methodology across weeks.
-- **Post-mortem:** CEO loads post-mortem skill. Ensures structured lesson extraction, not ad hoc reflection.
-- **Board Request:** CEO loads board-request-composition skill. Ensures requests are specific, justified, and include fallbacks.
-- **Initiative decomposition:** CEO loads initiative-decomposition skill. Ensures phased task breakdowns follow proven patterns.
-
-The CEO can also author skills. When the CEO successfully runs a type of initiative (outreach campaign, product development sprint), it can propose a new skill capturing the approach for future reuse. This goes through the standard review gate.
-
-### Skills + Onboarding
-
-During onboarding (see `onboarding.md`), the owner can author initial skills as part of the Precepts. The Data Policy section already captures classification guidelines — those become the data-classification org-wide skill. Communication preferences become the communication-tone skill. Quality expectations become the quality-baseline skill.
-
-Post-onboarding, the CEO's first planning cycle may identify skill gaps: "We need a prospect-identification skill but don't have one yet." This becomes either an authored skill (CEO writes it) or a research task (worker researches best practices → Curator structures the findings into a skill).
-
-## Updated Organizational Hierarchy
-
-The Curator slots in as a system-level role alongside the Scribe:
-
-```
-BOARD (Owner / Juandi)
-  │
-  ├── Board Advisor (Opus — weekly)
-  │
-  └── CEO (Opus)
-        │
-        ├── Reviewer (Opus — continuous, first evaluation gate)
-        │
-        ├── Judge (Opus — continuous, second evaluation gate)
-        │
-        ├── Scribe (Sonnet 4.6 — system role, context compression)
-        │     Reads raw activity → compresses for CEO
-        │
-        ├── Curator (Sonnet 4.6 — system role, skill management)
-        │     Reads patterns → creates/refines skills
-        │
-        └── Dispatcher (Opus — continuous, execution logistics)
-              │
-              │  Now also: selects relevant skills for each task
-              │  and includes them in worker context packages
-              │
-              └── Workers (Sonnet 4.6, parallel)
-                    Receive: task spec + skills + role memory +
-                    chain context + Team Bulletin
-```
-
-Both system-level roles (Scribe, Curator) share key properties:
+The Curator and Scribe share key properties:
 - Not workers — don't go through Reviewer/Judge pipeline
 - Sonnet 4.6 — don't need Opus-level reasoning for their tasks
 - Batch-oriented — run on schedule, not continuously
-- Their output quality is monitored indirectly through downstream impact
+- Output quality monitored indirectly through downstream impact
+
+Skills also expand the **Dispatcher's** responsibilities: in addition to assembling task spec + chain context + role memory + Team Bulletin, the Dispatcher now selects and loads relevant skills into each worker's context package.
 
 ## Bootstrapping (V0.1)
 
@@ -634,7 +567,7 @@ The Curator doesn't exist in Sprint 1. Skills start as authored documents — th
 
 **Sprint 1-2:** No skills system. All procedural knowledge lives in system prompts.
 
-**Sprint 3:** Introduce skills table in Supabase. Migrate procedural instructions from system prompts into authored skills. Dispatcher begins loading skills into worker context. CEO begins using leadership-only skills.
+**Sprint 3:** Introduce skill_index table in Supabase and skill files in the monorepo. Migrate procedural instructions from system prompts into authored skills. Dispatcher begins loading skills into worker context. CEO begins using leadership-only skills.
 
 **Sprint 4:** Introduce the Curator. Start extracting skills from Reviewer/Judge patterns. First refined skills appear. The self-learning loop begins.
 
@@ -649,33 +582,21 @@ These seed skills give the Curator a reference point for the quality and narrown
 
 | Type | Retention | Cleanup |
 |---|---|---|
-| Active skills | Permanent, versioned | None — active skills are the system's operational knowledge |
-| Skill versions | Permanent | None — revision history is valuable for understanding capability evolution |
-| Draft skills | 30 days | Drafts not promoted to active within 30 days are archived with a note |
-| Deprecated skills | Permanent (archived) | Moved to archive table, restorable |
+| Active skill files | Permanent in monorepo, versioned via git | None — active skills are the system's operational knowledge |
+| Skill history | Permanent in git | None — git log on any skill file shows its full evolution |
+| Draft skills | 30 days | Drafts not promoted to active within 30 days are removed from skill_index; files remain in git history |
+| Deprecated skills | Permanent in git, marked `deprecated` in skill_index | No longer selected by Dispatcher; files stay in repo, restorable by changing status back to `active` |
 
-## All Storage in Supabase
+## The Five Memory Types
 
-Like all other PRECEPT data, skills live in Postgres (Supabase). No separate file system, no external skill registry. One database, one backup strategy, one source of truth.
+Skills complete the memory architecture. See `memory.md` for full details on types 1-4.
 
-Estimated storage for V1 (first 6 months):
-- Skills table: <1MB (dozens of skills, text-heavy but small volume)
-- Skill versions: <2MB (each version is a JSONB snapshot)
+| # | Type | What it stores | Lifespan |
+|---|---|---|---|
+| 1 | **Institutional** | Decisions, lessons, owner feedback, audit trail | Permanent, append-only |
+| 2 | **Role** | Domain knowledge per role (facts, findings, contacts) | Permanent per role, survives agent swaps |
+| 3 | **Performance** | Agent capability profiles (acceptance rates, strengths) | Per agent, resets on swap |
+| 4 | **Operational** | Task chains, Team Bulletin, initiative state | Per initiative, transient |
+| 5 | **Skills** | Procedures, quality criteria, anti-patterns | Permanent in monorepo, versioned via git |
 
-Negligible compared to audit log and role memory.
-
-## Relationship to Memory Architecture
-
-Skills are the fifth memory type — or more precisely, they're the procedural complement to the four memory types defined in `memory.md`:
-
-| Memory Type | What it stores | Skills relationship |
-|---|---|---|
-| **Institutional** | What happened, what was decided, what was learned | Lesson artifacts feed the Curator → become skills |
-| **Role** | What this role knows (facts, data, findings) | Role Memory and skills are co-loaded by the Dispatcher. Knowledge + procedure. |
-| **Performance** | How capable is this agent | Performance data signals which skills need refinement |
-| **Operational** | What's happening right now | Task chain context may reference which skills were used on predecessor tasks |
-| **Skills** | How to do specific types of work well | Loaded on demand, not permanent context. The "how" to memory's "what." |
-
-Memory without skills: the system knows things but doesn't know how to apply them consistently.
-Skills without memory: the system has procedures but no domain knowledge to execute them against.
-Together: compounding capability. Every cycle makes the system better at doing the right things the right way.
+Types 1-4 answer: "What does the system know?" Type 5 answers: "How does the system work?"

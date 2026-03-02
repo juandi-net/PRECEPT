@@ -136,6 +136,8 @@ Every external service is a trust boundary where data crosses from PRECEPT's con
 - Outreach draft mentioning pricing strategy → 🟡 INTERNAL
 - Task requiring customer contracts → 🔴 RESTRICTED → Board Request
 
+**Skills level:** All skill files are classified 🟡 INTERNAL. They contain procedural knowledge derived from business strategy, evaluation patterns, and Precepts values. Leadership-only skills are further access-restricted to leadership roles (see Information Compartmentalization).
+
 **Routing level:** Engine checks classification before processing.
 - 🟢 → processed normally
 - 🟡 → processed normally (all V0.1 services are trusted for INTERNAL data)
@@ -148,13 +150,14 @@ The organizational hierarchy doubles as a security model. Each role sees only wh
 | Role | Can Access | Cannot Access |
 |---|---|---|
 | **Board (Owner)** | Everything | — |
-| **CEO** | Precepts, Scribe output, lesson artifacts, owner feedback, decision log, initiative state | Raw audit log detail, Board Advisor memos about its own performance |
-| **Board Advisor** | CEO's proposed plan, Precepts, decision log, performance data, lesson artifacts | Worker-level details, task outputs |
-| **Dispatcher** | CEO's plan, dependency graph, worker performance profiles, task state | Precepts, strategic rationale, evaluation details |
-| **Scribe** | Raw audit log, initiative state, performance data, lesson artifacts | Precepts |
-| **Reviewer** | Worker output, task spec, role memory (domain context) | CEO planning, strategic rationale, other workers' outputs |
-| **Judge** | Reviewer-approved output, task spec, acceptance criteria | CEO planning rationale (prevents bias) |
-| **Workers** | Their own task spec, chain context, relevant role memory, Team Bulletin | Other workers' outputs, evaluations, strategic plans, Precepts |
+| **CEO** | Precepts, Scribe output, lesson artifacts, owner feedback, decision log, initiative state, leadership-only skills, skill changes | Raw audit log detail, Board Advisor memos about its own performance |
+| **Board Advisor** | CEO's proposed plan, Precepts, decision log, performance data, lesson artifacts | Worker-level details, task outputs, skills |
+| **Dispatcher** | CEO's plan, dependency graph, worker performance profiles, skill_index, task state | Precepts, strategic rationale, evaluation details |
+| **Scribe** | Raw audit log, initiative state, performance data, lesson artifacts, skill changes | Precepts |
+| **Curator** | Reviewer craft patterns, Judge patterns, lesson artifacts, skill_index + skill files | Precepts, strategic rationale, task outputs directly |
+| **Reviewer** | Worker output, task spec, craft-evaluation skill, role memory (domain context) | CEO planning, strategic rationale, other workers' outputs |
+| **Judge** | Reviewer-approved output, task spec, acceptance criteria, outcome-evaluation skill | CEO planning rationale (prevents bias) |
+| **Workers** | Their own task spec, selected role-specific/org-wide skills, chain context, relevant role memory, Team Bulletin | Other workers' outputs, evaluations, strategic plans, Precepts, leadership-only skills |
 
 **Workers never see the full picture.** They get a task spec and relevant context — nothing about strategy, other workers, or evaluations. If a worker's context were leaked, the exposure is limited to one task's scope.
 

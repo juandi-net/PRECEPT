@@ -8,7 +8,7 @@ status: approved
 
 How the engine runs. Task lifecycle, Dispatcher behavior, context assembly, scheduling, and recovery.
 
-See `structure.md` for the organizational hierarchy and evaluation flow. This document covers the technical orchestration that implements that structure.
+See `structure.md` for the organizational hierarchy and evaluation flow, `skills.md` for procedural memory and the Curator role. This document covers the technical orchestration that implements that structure.
 
 ## Engine Architecture
 
@@ -109,7 +109,8 @@ Dispatcher reads phased task specs
       • Role match (Researcher, Coder, Writer, Analyst, Ops)
       • Performance profile (acceptance rate, strengths, recent trend)
       • Current workload (avoid overloading one worker)
-  → Moves to DISPATCHED → sends task spec + context to worker via CLIProxy (Sonnet 4.6)
+  → Selects relevant skills for the task (see `skills.md` — Skill Selection)
+  → Moves to DISPATCHED → sends task spec + skills + context to worker via CLIProxy (Sonnet 4.6)
 ```
 
 ### 2. Task State Change (Completion Signal)
@@ -131,6 +132,7 @@ The Dispatcher receives:
 - CEO's plan (task specs, dependencies, phase structure)
 - Dependency graph (current state of all tasks in the phase)
 - Worker performance profiles (acceptance rates, strengths, weaknesses)
+- skill_index (active skills, trigger tags, scopes — for skill selection per task)
 - Current task state from Supabase
 
 The Dispatcher does NOT receive Precepts, strategic rationale, or evaluation details. It manages logistics, not strategy.
@@ -159,6 +161,7 @@ For multi-step initiatives (research → analysis → outreach), the Dispatcher 
 - Dependency graph encodes this: Task B depends on Task A
 - When Task A reaches ACCEPTED and Task B moves to QUEUED, the Dispatcher assembles Task B's context:
   - Task B's spec (from CEO's plan)
+  - Relevant skills (selected from skill_index — see `skills.md`)
   - Task A's accepted output (predecessor context)
   - Relevant role memory entries (semantic search via pgvector)
   - Team Bulletin (ambient cross-worker awareness)
@@ -185,6 +188,7 @@ Scribe compresses into:
   • Initiative-level results summaries ("Research Phase 1: 12 prospects, 4 match ICP")
   • Exception report (escalations, blocks, stalled initiatives)
   • Pattern observations ("Writer revised 3x this week on value props — possible Precepts gap")
+  • Skill changes (new/refined skills from Curator since last cycle)
   • Forward context (upcoming deadlines, resource status)
   │
   ▼
@@ -207,13 +211,14 @@ Each agent receives only the context relevant to its function. No agent sees eve
 
 | Agent | Context Package | Source |
 |---|---|---|
-| **CEO** | Precepts + Scribe's compressed output + lessons + owner input | Supabase → Scribe → CEO |
+| **CEO** | Precepts + Scribe's compressed output + lessons + owner input + skill changes | Supabase → Scribe → CEO |
 | **Board Advisor** | CEO's proposed plan + Precepts + recent decision log + performance data | Supabase direct |
-| **Dispatcher** | CEO's plan + dependency graph + worker performance profiles + current task state | Supabase direct |
-| **Scribe** | Raw activity log + initiative state + performance data + lesson artifacts | Supabase direct |
-| **Reviewer** | Worker output + task spec + domain context (role memory via pgvector) | Supabase + pgvector |
-| **Judge** | Reviewer-approved output + task spec + acceptance criteria | Passed from Reviewer evaluation |
-| **Workers** | Task spec + chain context (predecessor outputs) + role memory + Team Bulletin | Assembled by Dispatcher |
+| **Dispatcher** | CEO's plan + dependency graph + worker performance profiles + skill_index + current task state | Supabase direct |
+| **Scribe** | Raw activity log + initiative state + performance data + lesson artifacts + recent skill changes | Supabase direct |
+| **Curator** | Reviewer craft patterns + Judge rejection/acceptance patterns + lesson artifacts + existing skill_index | Supabase direct + skill files |
+| **Reviewer** | Worker output + task spec + craft-evaluation skill + domain context (role memory via pgvector) | Supabase + pgvector + skill files |
+| **Judge** | Reviewer-approved output + task spec + acceptance criteria + outcome-evaluation skill | Passed from Reviewer evaluation + skill files |
+| **Workers** | Task spec + skills (selected by Dispatcher) + chain context + role memory + Team Bulletin | Assembled by Dispatcher |
 
 ## Operating Rhythm (Technical View)
 

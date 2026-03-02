@@ -41,9 +41,10 @@ All AI calls route through CLIProxy, which proxies the Claude Max subscription v
 | CEO | Opus 4.6 | Onboarding interview, strategic planning, initiative decomposition |
 | Judge | Opus 4.6 | Outcome evaluation (spec compliance) |
 | Reviewer | Opus 4.6 | Craft quality evaluation |
-| Dispatcher | Opus 4.6 | Task routing, dependency management |
+| Dispatcher | Opus 4.6 | Task routing, dependency management, skill selection |
 | Board Advisor | Opus 4.6 | Weekly plan review |
 | Scribe | Sonnet 4.6 | Context compression for CEO |
+| Curator | Sonnet 4.6 | Skill creation and refinement from evaluation patterns (see `skills.md`) |
 | Workers | Sonnet 4.6 | Task execution (Researcher, Coder, Writer, Analyst, Ops) |
 
 **CLIProxy source:** https://github.com/router-for-me/CLIProxyAPI
@@ -89,6 +90,7 @@ All AI calls route through CLIProxy, which proxies the Claude Max subscription v
 │  │  • Judge outcome evaluation                   │                  │
 │  │  • Board Advisor review (weekly)              │                  │
 │  │  • Scribe context compression                 │                  │
+│  │  • Curator skill extraction (weekly batch)    │                  │
 │  │  • Briefing compilation                       │                  │
 │  └──────────────────┬────────────────────────────┘                  │
 │                     │                                               │
@@ -121,9 +123,12 @@ All AI calls route through CLIProxy, which proxies the Claude Max subscription v
 │  │  Precepts  │ │  Audit Log │ │ Initiatives│ │  Role Memory    │ │
 │  │  (doc)     │ │  (append)  │ │ & Tasks    │ │  (pgvector)     │ │
 │  ├────────────┤ ├────────────┤ ├────────────┤ ├─────────────────┤ │
-│  │  Decision  │ │  Agent     │ │  Lesson    │ │  Team Bulletin  │ │
-│  │  Log       │ │  Profiles  │ │  Artifacts │ │                 │ │
-│  └────────────┘ └────────────┘ └────────────┘ └─────────────────┘ │
+│  │  Decision  │ │  Agent     │ │  Lesson    │ │  Skill Index    │ │
+│  │  Log       │ │  Profiles  │ │  Artifacts │ │  (metadata)     │ │
+│  ├────────────┤ └────────────┘ └────────────┘ ├─────────────────┤ │
+│  │  Team      │                               │  Skill files    │ │
+│  │  Bulletin  │                               │  (.md in repo)  │ │
+│  └────────────┘                               └─────────────────┘ │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 

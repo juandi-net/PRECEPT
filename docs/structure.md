@@ -8,6 +8,8 @@ status: approved
 
 The structure IS the product. Everything below defines how PRECEPT operates as an agentic organization. Technology implements the structure, not the other way around.
 
+See `orchestration.md` for the engine that implements this structure, `memory.md` for the knowledge architecture, `skills.md` for procedural memory and the Curator role, `security.md` for data classification and access controls.
+
 ## Foundational Principles
 
 Derived from the most enduring organizational structures in history. Each principle maps directly to a structural decision.
@@ -69,6 +71,16 @@ BOARD (Owner / Juandi)
         │       REVISE    → spec/strategic feedback, worker reworks → back to Reviewer
         │       ESCALATE  → to CEO (spec/capability/strategy problem)
         │
+        ├── SCRIBE (Sonnet 4.6 — system role, context compression)
+        │     Reads raw activity → compresses for CEO context.
+        │     Not a worker — does not go through Reviewer/Judge pipeline.
+        │     Also surfaces skill changes to CEO during planning cycle.
+        │
+        ├── CURATOR (Sonnet 4.6 — system role, skill management)
+        │     Reads Reviewer/Judge patterns → creates/refines skill files.
+        │     The self-learning loop's mechanism. See `skills.md`.
+        │     Not a worker — does not go through Reviewer/Judge pipeline.
+        │
         └── DISPATCHER (Opus — continuous, execution logistics)
               Receives CEO's phased plan. Translates strategy into organized execution.
               The only role that directly assigns work to workers.
@@ -76,6 +88,7 @@ BOARD (Owner / Juandi)
               │  Owns:
               │  • Build and manage dependency graph from CEO's plan
               │  • Route tasks to specific workers (based on performance profiles + strengths)
+              │  • Select and load relevant skills into worker context (see `skills.md`)
               │  • Dispatch parallel tasks simultaneously, hold dependent tasks
               │  • Pass output from step N as input context to step N+1 (task chains)
               │  • Monitor for blocks — flag upward if execution stalls
@@ -219,6 +232,7 @@ Scribe (Sonnet 4.6) distills into:
   • Initiative-level results summaries
   • Exception report (escalations, blocks, failures)
   • Pattern observations (recurring issues, emerging trends)
+  • Skill changes (new/refined skills from Curator since last cycle)
   • Forward context (upcoming deadlines, resource status)
   │
   ▼
@@ -241,7 +255,9 @@ The hierarchy determines what each tier owns. Violating tier boundaries degrades
 | **CEO** | Strategic planning, initiative decomposition, task specs, escalation diagnosis, briefing compilation | Worker output evaluation (Judge's job), craft assessment (Reviewer's job) |
 | **Judge** | Outcome evaluation (spec compliance), accept/revise/escalate verdicts | Strategic decisions, quality assessment, task assignment, dispatch |
 | **Reviewer** | Craft quality evaluation, performance profiling, quality tracking | Outcome evaluation, strategic decisions, task assignment, dispatch |
-| **Dispatcher** | Dependency graph, task routing, worker assignment, task chain context, tactical adaptation | Strategy, evaluation, quality assessment — escalates to CEO when blocked |
+| **Scribe** | Context compression for CEO, surfacing skill changes and pattern observations | Strategy, evaluation, task assignment, direct worker interaction |
+| **Curator** | Skill creation and refinement from Reviewer/Judge patterns (see `skills.md`) | Strategy, evaluation, task assignment, direct worker interaction |
+| **Dispatcher** | Dependency graph, task routing, worker assignment, skill selection, task chain context, tactical adaptation | Strategy, evaluation, quality assessment — escalates to CEO when blocked |
 | **Workers** | Faithful task execution within provided specs | Strategic decisions, self-evaluation, initiative planning, self-coordination |
 
 ## Agent Identity
@@ -293,6 +309,8 @@ North star metric hasn't moved after sustained effort. Triggers Board Escalation
 
 ## Memory Architecture
 
+Five memory types. See `memory.md` for types 1-4 in detail, `skills.md` for type 5.
+
 ### Organizational Memory (shared)
 Decision Log, lesson artifacts, Team Bulletin. Answers: "What has the organization learned?"
 
@@ -301,6 +319,9 @@ Cumulative domain knowledge attached to the ROLE, not the agent number. Semantic
 
 ### Task Chain Memory (per initiative, temporary)
 Multi-step initiative context. CEO defines chains, execution engine passes output from step N as input to step N+1. Answers: "What happened earlier in this project?"
+
+### Skills (procedural memory, per role + org-wide)
+Externalized procedures, quality criteria, and anti-patterns stored as `.md` files in the monorepo. Loaded on demand by the Dispatcher — not carried permanently in system prompts. Created by the owner, CEO, or Curator. Answers: "How should this type of work be done?"
 
 ## Structural Success Metrics
 

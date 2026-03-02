@@ -6,18 +6,21 @@ status: approved
 
 # PRECEPT V1 — Memory Architecture
 
-How the system remembers. Four memory types serving different purposes, audiences, and lifecycles.
+How the system remembers. Four memory types serving different purposes, audiences, and lifecycles — plus a fifth type (skills) that stores procedural knowledge separately. See `skills.md` for the full skills architecture.
 
-Memory is what makes day 30 fundamentally better than day 1. Without it, agents re-do work, lose accumulated knowledge, and produce contradictions. With it, the system self-learns — every interaction compounds.
+Memory is what makes day 30 fundamentally better than day 1. Without it, agents re-do work, lose accumulated knowledge, and produce contradictions. With it, the system self-learns — every interaction compounds. Memory stores what the system knows. Skills (the fifth type) store how the system works. Together they compound: knowledge + procedure.
 
-## Four Memory Types
+## Five Memory Types
 
-| Type | Purpose | Lifespan | Storage |
-|---|---|---|---|
-| **Institutional** | What has the organization learned? | Permanent, append-only | Postgres tables |
-| **Role** | What does this role know? | Permanent per role, survives agent swaps | Postgres + pgvector |
-| **Performance** | How capable is this agent? | Per agent, resets on swap | Postgres tables |
-| **Operational** | What's happening right now? | Per initiative, transient | Postgres tables |
+This document covers types 1-4. Type 5 (Skills) is covered in `skills.md`.
+
+| # | Type | Purpose | Lifespan | Storage |
+|---|---|---|---|---|
+| 1 | **Institutional** | What has the organization learned? | Permanent, append-only | Postgres tables |
+| 2 | **Role** | What does this role know? | Permanent per role, survives agent swaps | Postgres + pgvector |
+| 3 | **Performance** | How capable is this agent? | Per agent, resets on swap | Postgres tables |
+| 4 | **Operational** | What's happening right now? | Per initiative, transient | Postgres tables |
+| 5 | **Skills** | How should this type of work be done? | Permanent, versioned via git | `.md` files in monorepo + Postgres index |
 
 ## Type 1: Institutional Memory
 
@@ -136,7 +139,7 @@ The Reviewer evaluates every piece of work for a role. Over time, it identifies 
 - "Writer consistently struggles with concise subject lines"
 - "Coder produces cleaner output when given example code in the spec"
 
-These patterns are stored as role memory entries tagged as `craft_pattern`. They inform how the Dispatcher and CEO spec future tasks for that role.
+These patterns are stored as role memory entries tagged as `craft_pattern`. They inform how the Dispatcher and CEO spec future tasks for that role. They also feed the Curator's weekly skill extraction cycle — recurring patterns become procedural skills (see `skills.md`).
 
 **3. Batch cleanup (daily)**
 Raw entries accumulate throughout the day. A daily batch process (run by the Scribe or a scheduled function):
@@ -152,7 +155,7 @@ When the Dispatcher assembles a worker's context for a task:
 1. Embed the task description using the same embedding model
 2. Run semantic search against the role's knowledge base (pgvector similarity query)
 3. Return top-K relevant entries (configurable, start with K=5)
-4. Include in worker's context package alongside task spec, chain context, and Team Bulletin
+4. Include in worker's context package alongside task spec, selected skills (see `skills.md`), chain context, and Team Bulletin
 
 The worker sees only what's relevant to the current task, not the entire knowledge base. This keeps context focused and prevents confusion from irrelevant domain data.
 
@@ -286,6 +289,7 @@ Progress tracking for each active initiative.
    ┌──────────────────────────────────────────────────────────────┐
    │  SCRIBE (Sonnet 4.6)                                        │
    │  Reads institutional memory → compresses → CEO context      │
+   │  Also surfaces skill changes from Curator                   │
    └──────────────────────────────────┬───────────────────────────┘
                                       │
                                       ▼
@@ -302,7 +306,8 @@ Progress tracking for each active initiative.
 │  │                                                           │      │
 │  │  Written by: Workers (self-report), Reviewer (craft)      │      │
 │  │  Cleaned by: Daily batch process                          │      │
-│  │  Read by: Workers (via Dispatcher semantic search)         │      │
+│  │  Read by: Workers (via Dispatcher semantic search),        │      │
+│  │           Curator (craft patterns → skill extraction)      │      │
 │  └──────────────────────────────────────────────────────────┘      │
 └─────────────────────────────────────────────────────────────────────┘
 
