@@ -8,7 +8,7 @@ status: approved
 
 How the system gets its foundation. The onboarding interview produces the Precepts document — the CEO's persistent strategic context. Everything else depends on this document existing.
 
-See `structure.md` for the organizational hierarchy, `orchestration.md` for the engine that runs after onboarding, `security.md` for data classification rules, `skills.md` for how onboarding seeds the skills system, `interface.md` for the design philosophy behind the onboarding UI and all subsequent owner interactions.
+See `structure.md` for the organizational hierarchy, `orchestration.md` for the engine that runs after onboarding, `security.md` for data classification rules, `skills.md` for how onboarding seeds the skills system, `interface.md` for the design philosophy behind the onboarding UI and all subsequent owner interactions, `techstack.md` for implementation details.
 
 ## Why Onboarding Is Sprint 1
 

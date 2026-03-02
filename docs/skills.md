@@ -563,18 +563,19 @@ Skills also expand the **Dispatcher's** responsibilities: in addition to assembl
 
 ## Bootstrapping (V0.1)
 
-The Curator doesn't exist in Sprint 1. Skills start as authored documents — the owner writes them based on experience and judgment.
+The Curator doesn't exist in Sprint 1. Skills start as authored documents — either generated from Precepts during onboarding or written by the owner.
 
-**Sprint 1-2:** No skills system. All procedural knowledge lives in system prompts.
+**Sprint 1 (Onboarding):** The skill_index table and skill file structure exist at launch. During Lock & Launch, the engine generates seed skill files from Precepts content (see `onboarding.md` — Lock & Launch step 3):
+- communication-tone (org-wide, from Precepts values/culture)
+- data-classification (org-wide, from Data Policy)
+- quality-baseline (org-wide, from quality expectations)
+- 1-2 role-specific skills for the most common task types, if extractable from Precepts
 
-**Sprint 3:** Introduce skill_index table in Supabase and skill files in the monorepo. Migrate procedural instructions from system prompts into authored skills. Dispatcher begins loading skills into worker context. CEO begins using leadership-only skills.
+The Dispatcher loads these seed skills into worker context from the first execution cycle. The CEO uses leadership-only skills (strategic-planning, initiative-decomposition) from Sprint 1.
 
-**Sprint 4:** Introduce the Curator. Start extracting skills from Reviewer/Judge patterns. First refined skills appear. The self-learning loop begins.
+**Sprint 2:** Owner refines seed skills based on early execution results. Additional authored skills added manually as the system identifies gaps during its first cycles.
 
-The owner should author 3-5 foundational skills before Sprint 3:
-- communication-tone (org-wide, rooted in Precepts values)
-- quality-baseline (org-wide, minimum standards)
-- At least 1-2 role-specific skills for the most common task types
+**Sprint 3:** Introduce the Curator. Start extracting skills from Reviewer/Judge patterns. First refined skills appear. The self-learning loop begins.
 
 These seed skills give the Curator a reference point for the quality and narrowness it should aim for.
 

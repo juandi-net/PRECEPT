@@ -51,6 +51,8 @@ All AI calls route through CLIProxy, which proxies the Claude Max subscription v
 
 **No OpenRouter in V0.1.** Single AI gateway simplifies auth, trust boundaries, and debugging. OpenRouter becomes relevant in future versions for specialized models or local inference routing.
 
+**Note on Dispatcher model tier.** The Dispatcher is assigned Opus 4.6, but its job is logistics — dependency graph management, task routing by performance profile, skill selection by tag matching, and tactical adaptation. These are pattern matching and scheduling tasks, not strategic reasoning (that's the CEO and Judge). Sonnet could potentially handle dispatch if the task state machine and dependency graph are well-structured in Supabase. Not urgent at the $200/mo flat rate, but the Dispatcher is the first role to consider downgrading if rate limits become an issue.
+
 ## System Diagram
 
 ```

@@ -4,7 +4,7 @@ project: precept
 status: approved
 ---
 
-# PRECEPT V1 — Organizational Structure
+# PRECEPT V0.1 — Organizational Structure
 
 The structure IS the product. Everything below defines how PRECEPT operates as an agentic organization. Technology implements the structure, not the other way around.
 

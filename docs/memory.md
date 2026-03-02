@@ -4,7 +4,7 @@ project: precept
 status: approved
 ---
 
-# PRECEPT V1 — Memory Architecture
+# PRECEPT V0.1 — Memory Architecture
 
 How the system remembers. Four memory types serving different purposes, audiences, and lifecycles — plus a fifth type (skills) that stores procedural knowledge separately. See `skills.md` for the full skills architecture, `interface.md` for how memory surfaces to the owner through briefings and the Decision Room.
 

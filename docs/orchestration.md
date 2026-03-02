@@ -4,7 +4,7 @@ project: precept
 status: approved
 ---
 
-# PRECEPT V1 — Orchestration
+# PRECEPT V0.1 — Orchestration
 
 How the engine runs. Task lifecycle, Dispatcher behavior, context assembly, scheduling, and recovery.
 
@@ -213,7 +213,7 @@ Each agent receives only the context relevant to its function. No agent sees eve
 | Agent | Context Package | Source |
 |---|---|---|
 | **CEO** | Precepts + Scribe's compressed output + lessons + owner input + skill changes | Supabase → Scribe → CEO |
-| **Board Advisor** | CEO's proposed plan + Precepts + recent decision log + performance data | Supabase direct |
+| **Board Advisor** | CEO's proposed plan + Precepts + recent decision log + performance data + lesson artifacts | Supabase direct |
 | **Dispatcher** | CEO's plan + dependency graph + worker performance profiles + skill_index + current task state | Supabase direct |
 | **Scribe** | Raw activity log + initiative state + performance data + lesson artifacts + recent skill changes | Supabase direct |
 | **Curator** | Reviewer craft patterns + Judge rejection/acceptance patterns + lesson artifacts + existing skill_index | Supabase direct + skill files |
@@ -281,6 +281,19 @@ Between scheduled cycles, the CEO is invoked for:
 
 Each trigger invocation runs the Scribe first to ensure the CEO has fresh context.
 
+### Daily Role Memory Cleanup
+
+**Trigger:** node-cron, e.g., 2am (off-peak, before daily briefing)
+
+A scheduled batch process maintains role memory hygiene (see `memory.md` — Role Memory for the full specification):
+
+1. **Deduplicates** — merges entries about the same topic from different tasks
+2. **Structures** — normalizes format, fills metadata gaps
+3. **Flags stale** — marks entries not retrieved in 30+ days for review
+4. **Archives** — removes confirmed stale entries from active search (preserved in cold storage)
+
+This runs as a Supabase function or Scribe invocation — no CEO involvement. The Dispatcher benefits on its next task assignment because role memory is cleaner and more relevant.
+
 ## Recovery After Restart
 
 All execution state is in Supabase. The engine is stateless. On restart:
@@ -316,3 +329,17 @@ Engine Process
 ```
 
 Events are processed sequentially through the orchestration core. This is intentional — if the CEO and Dispatcher could run simultaneously, they might make contradictory decisions. Workers are the only agents that run in parallel, because they're executing independent tasks with no shared state.
+
+## Open Questions
+
+Items identified during V0.1 review. Deferred to Sprint 2-3.
+
+**Worker flag channel (#4).** The task state machine has no path for "I completed the task but found something the CEO needs to know." Workers can only produce output (→ REVIEW) or fail (→ FAILED). Structure.md's "stop cord" principle (Toyota Jidoka) requires a channel for workers to flag problems. Options: add a FLAGGED state to the task state machine, or add a structured `flags` field to worker output that the engine routes to the CEO.
+
+**CEO invocation modes (#7).** The CEO is invoked daily for briefing compilation and weekly for strategic planning, plus on trigger events. These are different cognitive modes — "summarize what happened" vs "what should we do next" — but the current spec doesn't distinguish between them. The CEO needs different prompts, different context weight, and possibly a mode flag to know which role it's playing.
+
+**Worker requisition (#8).** The brainstorm (lines 761-774) specifies a mechanism for CEO worker requisition — business case, expected impact, cost estimate, owner approval. This is how the organization grows. Currently there is no structured requisition format, no approval flow, and no impact on the Dispatcher's routing. The CEO can mention it in a Board Request, but this should be a first-class workflow.
+
+**Trust level thresholds (#9).** Memory.md's performance profile includes `TRUST LEVEL: Journeyman` but no doc defines what trust levels mean operationally. The brainstorm defines Apprentice → Journeyman → Master with concrete structural rewards: less oversight, more complex tasks, more context, more autonomy. Needs: threshold definitions, what changes at each level, how it affects Dispatcher behavior.
+
+**Dual CEO prompts (#10).** The brainstorm's synthesis table includes "Dual executive tension" (Roman Republic / Spartan dual kingship) — dual CEO prompts for major decisions (analytical vs values-driven). The Board Advisor partially fills this role but reviews the plan, not individual decisions. Intentionally deferred — the Board Advisor mechanism may be sufficient. Revisit if CEO decision quality proves to be a bottleneck.
