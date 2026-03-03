@@ -1,5 +1,6 @@
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { ai, MODELS } from '../ai/client.js';
 import { buildSkillAuthoringMessages } from '../ai/prompts/skill-authoring.js';
 import * as skillsDb from '../db/skills.js';
@@ -8,7 +9,10 @@ import { SEED_SKILLS } from '@precept/shared';
 import type { PreceptsDraft, SkillIndex, SeedSkillSpec } from '@precept/shared';
 
 const AGENT_ID = 'seed-skill-generator';
-const SKILLS_DIR = join(process.cwd(), 'skills');
+// Resolve monorepo root from this file's location (packages/engine/src/services/skills.ts → ../../../../)
+const __dirname = join(fileURLToPath(import.meta.url), '..');
+const MONOREPO_ROOT = join(__dirname, '..', '..', '..', '..');
+const SKILLS_DIR = join(MONOREPO_ROOT, 'skills');
 
 export class SeedSkillService {
   async generateSeedSkills(precepts: PreceptsDraft): Promise<SkillIndex[]> {
