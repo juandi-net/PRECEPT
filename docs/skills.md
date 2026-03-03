@@ -157,7 +157,7 @@ Skills exist at three levels. Scope determines who can use them and who can modi
 
 - **Org-wide skills override role-specific skills** on the same topic. If an org-wide skill says "never use jargon in external communications" and a Writer skill says "use industry terminology," the org-wide skill wins.
 - **Leadership-only skills are never visible to workers.** Workers don't see how the CEO plans, how the Judge evaluates, or how the Dispatcher routes. Information compartmentalization (see `security.md`) applies to skills too.
-- **Role-specific skills transfer with the role, not the agent.** When Worker-4 (Researcher, Sonnet 4.6) is replaced by Worker-7 (Researcher, new model), Worker-7 inherits all Researcher skills. Same principle as Role Memory — the role's accumulated knowledge and procedures persist across agent swaps.
+- **Role-specific skills transfer with the role, not the agent.** When Worker-4 (Researcher, Sonnet) is replaced by Worker-7 (Researcher, new model), Worker-7 inherits all Researcher skills. Same principle as Role Memory — the role's accumulated knowledge and procedures persist across agent swaps.
 
 ## Three Sources of Skills
 
@@ -204,7 +204,7 @@ Existing skills updated based on new evidence. A skill is never "done" — it's 
 
 A dedicated system-level role that creates and refines skills. Not a worker — does not go through the Reviewer/Judge pipeline. Analogous to the Scribe (context compression) but for procedural knowledge.
 
-**Model:** Sonnet 4.6 via CLIProxy.
+**Model:** Sonnet via CLIProxy.
 
 **Name rationale:** Curates the skill library — selects what belongs, maintains quality, removes what's stale, organizes the collection. The Reviewer observes quality. The Judge evaluates outcomes. The Curator turns those observations into teachable, repeatable procedures.
 
@@ -551,11 +551,11 @@ Skills touch every subsystem. The table below shows how; the referenced docs are
 
 ## Organizational Impact
 
-Skills introduce one new role: the **Curator** (Sonnet 4.6 via CLIProxy), a system-level batch role alongside the Scribe. See `structure.md` for the full organizational hierarchy.
+Skills introduce one new role: the **Curator** (Sonnet via CLIProxy), a system-level batch role alongside the Scribe. See `structure.md` for the full organizational hierarchy.
 
 The Curator and Scribe share key properties:
 - Not workers — don't go through Reviewer/Judge pipeline
-- Sonnet 4.6 — don't need Opus-level reasoning for their tasks
+- Sonnet — don't need Opus-level reasoning for their tasks
 - Batch-oriented — run on schedule, not continuously
 - Output quality monitored indirectly through downstream impact
 

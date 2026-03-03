@@ -42,7 +42,7 @@ Three entry points feed into a single orchestration core:
 │         ▼                 ▼                    ▼            │
 │  ┌─────────────────────────────┐  ┌──────────────────┐   │
 │  │ CLIProxy                    │  │    Supabase      │   │
-│  │ (Opus 4.6 + Sonnet 4.6)    │  │    (State)       │   │
+│  │ (Opus 4.6 + Sonnet)    │  │    (State)       │   │
 │  └─────────────────────────────┘  └──────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -111,7 +111,7 @@ Dispatcher reads phased task specs
       • Performance profile (acceptance rate, strengths, recent trend)
       • Current workload (avoid overloading one worker)
   → Selects relevant skills for the task (see `skills.md` — Skill Selection)
-  → Moves to DISPATCHED → sends task spec + skills + context to worker via CLIProxy (Sonnet 4.6)
+  → Moves to DISPATCHED → sends task spec + skills + context to worker via CLIProxy (Sonnet)
 ```
 
 ### 2. Task State Change (Completion Signal)
@@ -150,7 +150,7 @@ The Dispatcher does NOT make strategic calls. If something is structurally wrong
 
 ## Parallel Execution
 
-Workers run in parallel via concurrent CLIProxy API calls (Sonnet 4.6). The Dispatcher dispatches all QUEUED tasks with met dependencies simultaneously — it doesn't wait for one to finish before starting the next.
+Workers run in parallel via concurrent CLIProxy API calls (Sonnet). The Dispatcher dispatches all QUEUED tasks with met dependencies simultaneously — it doesn't wait for one to finish before starting the next.
 
 **Concurrency limit:** Configurable cap on simultaneous worker calls. Prevents hitting Claude Max rate limits. Start conservative (3-5 parallel), tune up based on observed limits.
 
@@ -171,7 +171,7 @@ For longer chains, the Dispatcher passes the most recent predecessor outputs, no
 
 ## The Scribe
 
-The Scribe (Sonnet 4.6 via CLIProxy) is a dedicated system-level role that prepares the CEO's context. It is not a worker and does not go through the Reviewer/Judge pipeline.
+The Scribe (Sonnet via CLIProxy) is a dedicated system-level role that prepares the CEO's context. It is not a worker and does not go through the Reviewer/Judge pipeline.
 
 ### What the Scribe Does
 

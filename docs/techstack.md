@@ -43,9 +43,9 @@ All AI calls route through CLIProxy, which proxies the Claude Max subscription v
 | Reviewer | Opus 4.6 | Craft quality evaluation |
 | Dispatcher | Opus 4.6 | Task routing, dependency management, skill selection |
 | Board Advisor | Opus 4.6 | Weekly plan review |
-| Scribe | Sonnet 4.6 | Context compression for CEO |
-| Curator | Sonnet 4.6 | Skill creation and refinement from evaluation patterns (see `skills.md`) |
-| Workers | Sonnet 4.6 | Task execution (Researcher, Coder, Writer, Analyst, Ops) |
+| Scribe | Sonnet | Context compression for CEO |
+| Curator | Sonnet | Skill creation and refinement from evaluation patterns (see `skills.md`) |
+| Workers | Sonnet | Task execution (Researcher, Coder, Writer, Analyst, Ops) |
 
 **CLIProxy source:** https://github.com/router-for-me/CLIProxyAPI
 
@@ -105,7 +105,7 @@ All AI calls route through CLIProxy, which proxies the Claude Max subscription v
 │              Claude Max subscription — $200/mo flat                   │
 │                                                                     │
 │  ┌───────────────────────────┐  ┌───────────────────────────┐      │
-│  │  Opus 4.6                  │  │  Sonnet 4.6                │      │
+│  │  Opus 4.6                  │  │  Sonnet                    │      │
 │  │                            │  │                            │      │
 │  │  • CEO                     │  │  • Scribe                  │      │
 │  │  • Judge                   │  │  • Curator                 │      │

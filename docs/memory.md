@@ -287,7 +287,7 @@ Progress tracking for each active initiative.
           │                │               │                │
           ▼                ▼               ▼                ▼
    ┌──────────────────────────────────────────────────────────────┐
-   │  SCRIBE (Sonnet 4.6)                                        │
+   │  SCRIBE (Sonnet)                                        │
    │  Reads institutional memory → compresses → CEO context      │
    │  Also surfaces skill changes from Curator                   │
    └──────────────────────────────────┬───────────────────────────┘

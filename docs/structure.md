@@ -71,12 +71,12 @@ BOARD (Owner / Juandi)
         │       REVISE    → spec/strategic feedback, worker reworks → back to Reviewer
         │       ESCALATE  → to CEO (spec/capability/strategy problem)
         │
-        ├── SCRIBE (Sonnet 4.6 — system role, context compression)
+        ├── SCRIBE (Sonnet — system role, context compression)
         │     Reads raw activity → compresses for CEO context.
         │     Not a worker — does not go through Reviewer/Judge pipeline.
         │     Also surfaces skill changes to CEO during planning cycle.
         │
-        ├── CURATOR (Sonnet 4.6 — system role, skill management)
+        ├── CURATOR (Sonnet — system role, skill management)
         │     Reads Reviewer/Judge patterns → creates/refines skill files.
         │     The self-learning loop's mechanism. See `skills.md`.
         │     Not a worker — does not go through Reviewer/Judge pipeline.
@@ -99,7 +99,7 @@ BOARD (Owner / Juandi)
               │  • Evaluate output quality (Judge/Reviewer's job)
               │  • Make strategic decisions when things go wrong (escalates to CEO)
               │
-              └── WORKERS (Sonnet 4.6 via CLIProxy — continuous, parallel)
+              └── WORKERS (Sonnet via CLIProxy — continuous, parallel)
                     Execute atomic tasks with clear specs. Don't make strategic decisions.
                     If they encounter something contradicting strategy, they flag it — don't act on it.
                     │
@@ -220,7 +220,7 @@ The CEO's job is to think about the future and evaluate results. It does not pro
 - Worker-level operational details (drafts, revision cycles, routine verdicts)
 - The raw activity log (hundreds of atomic events)
 
-### The Scribe (Sonnet 4.6 via CLIProxy)
+### The Scribe (Sonnet via CLIProxy)
 
 A dedicated system-level role that prepares the CEO's context. Not a worker — does not go through the Reviewer/Judge pipeline. Runs before every CEO invocation.
 
@@ -228,7 +228,7 @@ A dedicated system-level role that prepares the CEO's context. Not a worker — 
 Raw activity log (every task, verdict, event)
   │
   ▼
-Scribe (Sonnet 4.6) distills into:
+Scribe (Sonnet) distills into:
   • Initiative-level results summaries
   • Exception report (escalations, blocks, failures)
   • Pattern observations (recurring issues, emerging trends)

@@ -40,7 +40,7 @@ All AI calls in V0.1 route through CLIProxy, a local proxy that exposes Claude m
 │  All AI calls route through this single gateway      │
 │                                                      │
 │  ┌─────────────────┐    ┌─────────────────┐         │
-│  │  Opus 4.6        │    │  Sonnet 4.6      │         │
+│  │  Opus 4.6        │    │  Sonnet          │         │
 │  │                  │    │                  │         │
 │  │  CEO             │    │  Scribe          │         │
 │  │  Judge           │    │  Curator         │         │
@@ -60,7 +60,7 @@ All AI calls in V0.1 route through CLIProxy, a local proxy that exposes Claude m
 - Multi-account load balancing available if needed
 - No per-token costs — covered by Max subscription
 
-**No OpenRouter in V0.1.** All models are Claude (Opus 4.6, Sonnet 4.6). OpenRouter becomes relevant in future versions for specialized models or local inference routing.
+**No OpenRouter in V0.1.** All models are Claude (Opus 4.6, Sonnet). OpenRouter becomes relevant in future versions for specialized models or local inference routing.
 
 ## Trust Boundaries
 
