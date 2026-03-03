@@ -40,6 +40,7 @@ vi.mock('../../db/tasks.js', () => ({
     { id: 'uuid-1' },
     { id: 'uuid-2' },
   ]),
+  updateTaskDependencies: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../db/messages.js', () => ({

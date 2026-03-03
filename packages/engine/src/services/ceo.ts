@@ -11,7 +11,7 @@ import { getRecentLessons, logDecision } from '../db/decisions.js';
 import { getRecentFeedback } from '../db/owner-feedback.js';
 import { createInitiative, getActiveInitiatives } from '../db/initiatives.js';
 import { createPlan, getUnapprovedPlans } from '../db/plans.js';
-import { createTasks, getTask, getTasksByState, type CreateTaskParams } from '../db/tasks.js';
+import { createTasks, getTask, getTasksByState, updateTaskDependencies, type CreateTaskParams } from '../db/tasks.js';
 import { logMessage } from '../db/messages.js';
 import { logEvent } from '../db/audit.js';
 
@@ -74,8 +74,12 @@ export class CEOService {
         description: init.description,
       });
 
-      // 7. Create tasks with depends_on ID remapping
+      // 7. Create tasks, then remap plan-internal depends_on IDs to real UUIDs
+      // Accumulate plan-ID → UUID mapping across all phases in this initiative
+      const idMap = new Map<string, string>();
+
       for (const phase of init.phases) {
+        // First pass: insert with empty depends_on (column is UUID[], can't store plan IDs)
         const taskParams: CreateTaskParams[] = phase.tasks.map((t) => ({
           orgId,
           initiativeId: initiative.id,
@@ -86,25 +90,32 @@ export class CEOService {
             acceptance_criteria: t.acceptance_criteria,
             priority: t.priority,
           },
-          dependsOn: t.depends_on,
+          dependsOn: [],
           skillsLoaded: t.skills,
         }));
 
-        // Bulk insert returns tasks with generated UUIDs
         const createdTasks = await createTasks(taskParams);
 
         // Build ID remap: plan-internal ID → generated UUID
-        const idMap = new Map<string, string>();
         phase.tasks.forEach((planTask, idx) => {
           if (createdTasks[idx]) {
             idMap.set(planTask.id, createdTasks[idx].id);
           }
         });
 
-        // NOTE: depends_on remapping would need a second pass to update
-        // the DB with real UUIDs. For now, tasks store plan-internal IDs
-        // and the dependency resolver uses the plan-internal ID scheme.
-        // Full remapping will be wired when the Dispatcher consumes tasks.
+        // Second pass: update depends_on with remapped UUIDs
+        for (let i = 0; i < phase.tasks.length; i++) {
+          const planDeps = phase.tasks[i].depends_on;
+          if (planDeps.length === 0) continue;
+
+          const remappedDeps = planDeps
+            .map((planId) => idMap.get(planId))
+            .filter((uuid): uuid is string => uuid !== undefined);
+
+          if (remappedDeps.length > 0) {
+            await updateTaskDependencies(createdTasks[i].id, remappedDeps);
+          }
+        }
       }
     }
 

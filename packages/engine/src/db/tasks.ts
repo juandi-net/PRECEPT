@@ -170,6 +170,15 @@ export async function incrementRevisionCount(taskId: string): Promise<number> {
   return newCount;
 }
 
+export async function updateTaskDependencies(taskId: string, dependsOn: string[]): Promise<void> {
+  const { error } = await db
+    .from('tasks')
+    .update({ depends_on: dependsOn, updated_at: new Date().toISOString() })
+    .eq('id', taskId);
+
+  if (error) throw new Error(`Failed to update task dependencies: ${error.message}`);
+}
+
 export async function getDependentTasks(taskId: string): Promise<Task[]> {
   const { data, error } = await db
     .from('tasks')

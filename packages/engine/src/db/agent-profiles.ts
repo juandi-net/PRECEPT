@@ -86,7 +86,7 @@ export async function upsertProfile(params: UpsertProfileParams): Promise<void> 
       craft_notes: params.craftNotes ?? null,
       trust_level: params.trustLevel ?? 'apprentice',
       updated_at: new Date().toISOString(),
-    }, { onConflict: 'agent_id' });
+    }, { onConflict: 'org_id, agent_id' });
 
   if (error) throw new Error(`Failed to upsert agent profile: ${error.message}`);
 }

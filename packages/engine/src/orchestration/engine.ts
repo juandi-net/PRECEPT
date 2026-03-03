@@ -259,7 +259,6 @@ export class OrchestrationEngine {
           // Dispatch via plan_approved won't work for individual tasks.
           // Manually dispatch.
           try {
-            await applyTransition(ready.id, 'QUEUED', 'Engine', 'dependency met');
             await this.dispatcher['dispatchTask'](ready);
             await applyTransition(ready.id, 'IN_PROGRESS', 'Engine', 'worker starting');
             const output = await this.worker.execute(ready);
