@@ -46,7 +46,7 @@ Update all RLS policies to include `org_id` scoping.
 
 ### Phase 1: Sprint 2 Tables (`00006_sprint2_tables.sql`)
 
-10 new tables, all with `org_id NOT NULL REFERENCES orgs(id)`:
+11 new tables, all with `org_id NOT NULL REFERENCES orgs(id)`:
 
 - `initiatives` — strategic initiatives (CEO creates)
 - `plans` — CEO plans with advisor verdict + owner approval
@@ -57,6 +57,7 @@ Update all RLS policies to include `org_id` scoping.
 - `lesson_artifacts` — post-mortem learnings
 - `role_memory` — pgvector semantic knowledge base (`vector(768)`)
 - `team_bulletin` — rolling window of recent accepted work
+- `owner_feedback_history` — raw owner replies + parsed intent for CEO learning
 - `messages` — InternalMessage log for agent-to-agent communication
 
 RLS on all tables, scoped by `org_id`.

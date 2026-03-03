@@ -449,7 +449,7 @@ CREATE POLICY org_isolation_skills ON skill_index
 **Files:**
 - Create: `supabase/migrations/00006_sprint2_tables.sql`
 
-**SQL — create all 10 new tables:**
+**SQL — create all 11 new tables:**
 
 ```sql
 -- Strategic initiatives
@@ -589,6 +589,19 @@ CREATE TABLE team_bulletin (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Owner feedback history (raw storage for CEO learning over time)
+CREATE TABLE owner_feedback_history (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id         UUID NOT NULL REFERENCES orgs(id),
+  source         TEXT NOT NULL DEFAULT 'briefing_reply'
+    CHECK (source IN ('briefing_reply', 'decision_room', 'direct')),
+  raw_content    TEXT NOT NULL,
+  parsed_intent  JSONB,
+  plan_id        UUID REFERENCES plans(id),
+  initiative_id  UUID REFERENCES initiatives(id),
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- Internal messages
 CREATE TABLE messages (
   id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -613,6 +626,7 @@ CREATE INDEX idx_role_memory_role_status ON role_memory(role, status);
 CREATE INDEX idx_messages_reference_id ON messages(reference_id);
 CREATE INDEX idx_messages_message_type ON messages(message_type);
 CREATE INDEX idx_team_bulletin_created_at ON team_bulletin(created_at);
+CREATE INDEX idx_owner_feedback_created_at ON owner_feedback_history(created_at);
 
 -- RLS on all new tables
 ALTER TABLE initiatives ENABLE ROW LEVEL SECURITY;
@@ -625,10 +639,11 @@ ALTER TABLE lesson_artifacts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE role_memory ENABLE ROW LEVEL SECURITY;
 ALTER TABLE team_bulletin ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE owner_feedback_history ENABLE ROW LEVEL SECURITY;
 ```
 
 **Step 1:** Create migration file.
-**Step 2:** Commit: `feat: add Sprint 2 tables — initiatives, plans, tasks, evaluations, memory`
+**Step 2:** Commit: `feat: add Sprint 2 tables — initiatives, plans, tasks, evaluations, memory, owner feedback`
 
 ---
 
@@ -760,6 +775,7 @@ Create the DB access functions for the new tables. Follow the existing pattern f
 - Create: `packages/engine/src/db/role-memory.ts`
 - Create: `packages/engine/src/db/team-bulletin.ts`
 - Create: `packages/engine/src/db/messages.ts`
+- Create: `packages/engine/src/db/owner-feedback.ts`
 - Create: `packages/engine/src/db/__tests__/tasks.test.ts`
 
 Each DB module exports CRUD functions using the existing `db` client from `db/client.ts`. All functions accept `orgId` as a required parameter. Map camelCase ↔ snake_case manually (no ORM).
@@ -798,6 +814,10 @@ Each DB module exports CRUD functions using the existing `db` client from `db/cl
 
 `db/messages.ts`:
 - `logMessage(msg: Omit<InternalMessage, 'id' | 'created_at'>): Promise<void>` — fire-and-forget like audit
+
+`db/owner-feedback.ts`:
+- `logOwnerFeedback(params: { orgId: string; source: string; rawContent: string; parsedIntent: OwnerReplyIntent; planId?: string; initiativeId?: string }): Promise<void>` — stores every owner reply for CEO learning
+- `getRecentFeedback(orgId: string, limit?: number): Promise<OwnerFeedback[]>` — CEO reads this during planning cycles to learn owner patterns
 
 `db/agent-profiles.ts`:
 - `getProfile(orgId: string, agentId: string): Promise<AgentProfile | null>`
@@ -1301,14 +1321,22 @@ Scribe → CEO → Board Advisor → plan stored. Each service gets a prompt fil
 `planningCycle` flow:
 1. Read Precepts from DB
 2. Call ScribeService.compressContext()
-3. Read recent lesson artifacts, owner input
+3. Read recent lesson artifacts, owner feedback history (via `getRecentFeedback()` from `db/owner-feedback.ts`)
 4. Read leadership skills from disk (skills/leadership/ or skills/org-wide/)
 5. Build CEO prompt with all context
 6. Call `invokeAgent('CEO-1', { model: 'opus', temperature: 0.7, jsonMode: true })`
 7. Parse PlanOutput from response
-8. Create `initiatives` rows, `tasks` rows (with proper depends_on mapping), `decision_log` rows
-9. Create `plans` row
-10. Return the plan
+8. Create `initiatives` rows
+9. Create `tasks` rows with **depends_on ID remapping**:
+   - CEO produces PlanTask objects with plan-internal IDs (e.g., "task-1", "task-2") and depends_on arrays referencing those IDs
+   - On insert, Supabase generates real UUIDs
+   - Build a map: `planTaskId → generatedUUID`
+   - For each task's depends_on array: replace plan-internal IDs with real UUIDs
+   - Then bulk insert with remapped depends_on
+   - Without this, depends_on contains plan-internal strings that don't match any task UUID, and `getDispatchableTasks()` never finds dependencies as ACCEPTED
+10. Create `decision_log` rows
+11. Create `plans` row
+12. Return the plan
 
 **Tests:** Mock `invokeAgent` to return a valid PlanOutput JSON. Verify:
 - Correct prompt assembly (Precepts present, context package present)
@@ -1400,6 +1428,18 @@ Scribe → CEO → Board Advisor → plan stored. Each service gets a prompt fil
   4. Role memory (embedText query → match_role_memory RPC, top-5)
   5. Chain context (accepted output from predecessor tasks)
   6. Team Bulletin (last 10 entries)
+  7. Rework context (only for POLISH/REVISION re-dispatches):
+     ```typescript
+     reworkContext?: {
+       previousOutput: string;   // worker's previous attempt
+       feedback: string;         // Reviewer or Judge feedback
+       source: 'reviewer' | 'judge';
+       attempt: number;          // which attempt this is
+     }
+     ```
+     Populated from `tasks.output` + stored verdict when re-dispatching for POLISH or REVISION. Without this, the worker starts fresh with no knowledge of what it produced before or why it was rejected.
+
+**DISPATCHED → IN_PROGRESS transition:** The Dispatcher calls `applyTransition(taskId, 'IN_PROGRESS', dispatcherAgentId, 'worker starting')` immediately before calling `workerService.execute()`. This ensures the state machine sees the full chain: QUEUED → DISPATCHED (assignment) → IN_PROGRESS (execution starts) → REVIEW (output submitted). Without this, the task jumps from DISPATCHED to REVIEW, which the state machine rejects.
 
 **Concurrency:** Use a simple semaphore pattern:
 
@@ -1720,13 +1760,14 @@ export function briefingToHtml(content: BriefingContent): string {
 
 **`owner_reply` handler:**
 1. Call `ceoService.handleOwnerReply(orgId, content)`
-2. For each action in intent:
+2. Store the raw reply + parsed intent in `owner_feedback_history` via `logOwnerFeedback()` — every reply gets stored regardless of action type, so the CEO can learn owner patterns over time
+3. For each action in intent:
    - `approve` → `approvePlan(targetId)`, push `plan_approved` event
    - `hold` → pause initiative/task
-   - `pivot` → store as input for next CEO cycle
-   - `free_text` → store as owner_input
+   - `pivot` → store in `owner_feedback_history` with initiative_id, CEO reads via `getRecentFeedback()` in next planning cycle
+   - `free_text` → already stored in `owner_feedback_history`, CEO reads via `getRecentFeedback()` in next planning cycle
    - `clarify` → CEO adds clarification request to next briefing
-3. Log audit events
+4. Log audit events
 
 **Step 1:** Wire handlers.
 **Step 2:** Run all tests.
@@ -1744,13 +1785,17 @@ export function briefingToHtml(content: BriefingContent): string {
 
 ```typescript
 async recoverFromRestart(): Promise<void> {
-  // 1. QUEUED tasks → push plan_approved to re-dispatch
+  // 1. QUEUED tasks → dispatch directly via dispatcherService.dispatchQueuedTasks(orgId)
+  //    NOT plan_approved (which calls getDispatchableTasks for PLANNED state).
+  //    QUEUED tasks already passed PLANNED → QUEUED. Pick up from worker assignment step.
   // 2. DISPATCHED/IN_PROGRESS → check task_transitions.created_at
   //    vs configurable timeout → FAILED if stale
   // 3. REVIEW/JUDGMENT with no subsequent transition → re-invoke evaluator
   // 4. POLISH/REVISION → check if worker has resubmitted (newer transition exists)
 }
 ```
+
+Add `dispatchQueuedTasks(orgId: string)` to DispatcherService — queries tasks in QUEUED state for the org and picks up from worker assignment + context assembly, skipping the PLANNED → QUEUED transition they've already passed.
 
 Configurable timeout via `TASK_TIMEOUT_MS` env var (default: 10 minutes for workers).
 
