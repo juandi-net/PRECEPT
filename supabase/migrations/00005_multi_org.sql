@@ -24,6 +24,10 @@ ALTER TABLE audit_log
 ALTER TABLE skill_index
   ADD COLUMN org_id UUID REFERENCES orgs(id);
 
+-- Fix: skill_index.name has a global UNIQUE constraint from 00003.
+-- Replace with composite (org_id, name) so different orgs can have same skill names.
+ALTER TABLE skill_index DROP CONSTRAINT skill_index_name_key;
+
 -- Backfill: Create ROOKIE org, set org_id on all existing rows.
 -- This runs as a DO block so it's atomic.
 DO $$
@@ -45,6 +49,9 @@ ALTER TABLE onboarding_sessions ALTER COLUMN org_id SET NOT NULL;
 ALTER TABLE precepts ALTER COLUMN org_id SET NOT NULL;
 ALTER TABLE audit_log ALTER COLUMN org_id SET NOT NULL;
 ALTER TABLE skill_index ALTER COLUMN org_id SET NOT NULL;
+
+-- Add composite unique constraint now that org_id is NOT NULL
+ALTER TABLE skill_index ADD CONSTRAINT skill_index_org_name_unique UNIQUE (org_id, name);
 
 -- Update RLS policies to include org_id scoping
 -- (Default deny-all with service_role bypass is still in place from 00004)
