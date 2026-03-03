@@ -99,14 +99,12 @@ ${docsContent}`,
   }
 
   // Add conversation history
-  // CEO messages are re-wrapped as JSON to keep the model primed for JSON output.
-  // Without this, the model sees its prior turn as plain text and may abandon JSON format.
   for (const msg of conversation) {
     if (msg.role === 'ceo') {
-      messages.push({
-        role: 'assistant',
-        content: JSON.stringify({ message: msg.content, updatedTracker: tracker, updatedFields: {} }),
-      });
+      // Use stored raw response for accurate history; fall back to reconstruction for old sessions
+      const content = msg.rawResponse
+        ?? JSON.stringify({ message: msg.content, updatedTracker: tracker, updatedFields: {} });
+      messages.push({ role: 'assistant', content });
     } else {
       messages.push({ role: 'user', content: msg.content });
     }
