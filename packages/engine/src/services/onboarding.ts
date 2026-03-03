@@ -170,7 +170,7 @@ export class OnboardingService {
     });
 
     // Write PRECEPTS.md to org-scoped path: data/orgs/{slug}/PRECEPTS.md
-    await writePreceptsFile(finalDraft, 'rookie');
+    await writePreceptsFile(finalDraft, 'ROOKIE');
 
     // Generate seed skill files from Precepts content
     const skillService = new SeedSkillService();
