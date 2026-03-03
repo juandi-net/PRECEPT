@@ -11,7 +11,29 @@ export type AuditEventType =
   | 'precepts.updated'
   | 'ai.call'
   | 'skills.seed_generated'
-  | 'skills.seed_failed';
+  | 'skills.seed_failed'
+  | 'planning.cycle'
+  | 'planning.scribe'
+  | 'planning.ceo'
+  | 'planning.advisor'
+  | 'planning.approved'
+  | 'dispatch.plan'
+  | 'dispatch.task'
+  | 'worker.start'
+  | 'worker.complete'
+  | 'worker.failed'
+  | 'review.start'
+  | 'review.verdict'
+  | 'judge.start'
+  | 'judge.verdict'
+  | 'task.transition'
+  | 'task.escalated'
+  | 'briefing.compiled'
+  | 'briefing.sent'
+  | 'owner.reply'
+  | 'owner.action'
+  | 'memory.stored'
+  | 'memory.queried';
 
 export interface AuditEntry {
   id: string;

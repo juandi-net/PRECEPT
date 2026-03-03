@@ -34,6 +34,12 @@ vi.mock('../skills.js', () => ({
   })),
 }));
 
+// Mock filesystem to prevent tests from overwriting real PRECEPTS.md
+vi.mock('node:fs/promises', () => ({
+  mkdir: vi.fn().mockResolvedValue(undefined),
+  writeFile: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock('@precept/shared', async () => {
   const actual = await vi.importActual('@precept/shared');
   return {

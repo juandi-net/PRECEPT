@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ai, MODELS } from '../ai/client.js';
@@ -169,8 +169,8 @@ export class OnboardingService {
       sessionId,
     });
 
-    // Write PRECEPTS.md to repo root
-    await writePreceptsFile(finalDraft);
+    // Write PRECEPTS.md to org-scoped path: data/orgs/{slug}/PRECEPTS.md
+    await writePreceptsFile(finalDraft, 'ROOKIE');
 
     // Generate seed skill files from Precepts content
     const skillService = new SeedSkillService();
@@ -311,7 +311,7 @@ export class OnboardingService {
   }
 }
 
-async function writePreceptsFile(draft: PreceptsDraft): Promise<void> {
+async function writePreceptsFile(draft: PreceptsDraft, orgSlug: string): Promise<void> {
   const sections: string[] = [];
 
   for (const fieldName of PRECEPTS_FIELDS) {
@@ -326,5 +326,7 @@ async function writePreceptsFile(draft: PreceptsDraft): Promise<void> {
   const date = new Date().toISOString().split('T')[0];
   const markdown = `# Precepts\n\nGenerated from onboarding session on ${date}.\n\n${sections.join('\n\n')}\n`;
 
-  await writeFile(join(MONOREPO_ROOT, 'PRECEPTS.md'), markdown, 'utf-8');
+  const orgDir = join(MONOREPO_ROOT, 'data', 'orgs', orgSlug);
+  await mkdir(orgDir, { recursive: true });
+  await writeFile(join(orgDir, 'PRECEPTS.md'), markdown, 'utf-8');
 }
