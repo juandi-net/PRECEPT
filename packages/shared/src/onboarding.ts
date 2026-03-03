@@ -18,6 +18,7 @@ export interface ConversationMessage {
   role: 'owner' | 'ceo';
   content: string;
   timestamp: string;
+  rawResponse?: string; // Full AI JSON response for CEO messages, used to replay accurate history
 }
 
 export interface ExtractionTracker {
