@@ -153,7 +153,9 @@ The engine is a long-running orchestration process (scheduled CEO cycles, parall
 Availability wins at V0.1. The AI CEO must run whether the owner's machine is on or not. Cloud-hosted DB ensures this. Supabase is standard Postgres — `pg_dump` migrates to local when Mac Studio arrives (V2). V0.1 security model excludes RESTRICTED data, so cloud hosting is acceptable.
 
 ### CLIProxy + Claude Max over direct API keys or OpenRouter
-Claude Max subscription ($200/mo) provides flat-rate access to Opus 4.6 and Sonnet 4.6. CLIProxy exposes these via OpenAI-compatible API endpoints. This eliminates per-token costs entirely and simplifies the architecture to a single AI trust boundary. No OpenRouter needed for V0.1.
+Claude Max subscription ($200/mo) provides flat-rate access to Opus 4.6 and Sonnet 4.5. CLIProxy exposes these via OpenAI-compatible API endpoints. This eliminates per-token costs entirely and simplifies the architecture to a single AI trust boundary. No OpenRouter needed for V0.1.
+
+**Actual model IDs** (as reported by CLIProxy `/v1/models`): `claude-opus-4-6` for CEO/Opus roles, `claude-sonnet-4-5-20250929` for Workers/Scribe/Curator. These are configured in `packages/engine/src/ai/client.ts` and overridable via `CLIPROXY_MODEL_OPUS` / `CLIPROXY_MODEL_SONNET` env vars.
 
 ### Fly.io over Railway/Render
 Always-on free tier (no spindown). Engine needs to receive webhooks reliably and run scheduled CEO cycles. Render free tier spins down after 15 min (breaks webhooks). Railway is $5/mo for equivalent. Fly.io free tier stays on. CEO cycle scheduling via node-cron in the engine.
