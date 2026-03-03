@@ -10,21 +10,21 @@ export interface InsertSkillParams {
   filePath: string;
 }
 
-export async function insertSkill(params: InsertSkillParams): Promise<SkillIndex> {
+export async function upsertSkill(params: InsertSkillParams): Promise<SkillIndex> {
   const { data, error } = await db
     .from('skill_index')
-    .insert({
+    .upsert({
       name: params.name,
       scope: params.scope,
       role: params.role,
       status: params.status,
       trigger_tags: params.triggerTags,
       file_path: params.filePath,
-    })
+    }, { onConflict: 'name' })
     .select()
     .single();
 
-  if (error) throw new Error(`Failed to insert skill: ${error.message}`);
+  if (error) throw new Error(`Failed to upsert skill: ${error.message}`);
 
   return {
     id: data.id,

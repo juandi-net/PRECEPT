@@ -141,7 +141,7 @@ ${content}
     await writeFile(absolutePath, fileContent, 'utf-8');
 
     // Insert into skill_index
-    return skillsDb.insertSkill({
+    return skillsDb.upsertSkill({
       name: spec.name,
       scope: spec.scope,
       role: null,
