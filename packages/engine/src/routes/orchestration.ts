@@ -34,12 +34,12 @@ orchestration.post('/approve-plan/:planId', async (c) => {
 });
 
 orchestration.post('/owner-reply', async (c) => {
-  const body = await c.req.json<{ orgId: string; briefingId: string }>();
-  if (!body?.orgId || !body?.briefingId) {
-    return c.json({ error: 'orgId and briefingId required' }, 400);
+  const body = await c.req.json<{ orgId: string; briefingId: string; content: string }>();
+  if (!body?.orgId || !body?.content) {
+    return c.json({ error: 'orgId and content required' }, 400);
   }
 
-  engine.push({ type: 'owner_reply', orgId: body.orgId, briefingId: body.briefingId });
+  engine.push({ type: 'owner_reply', orgId: body.orgId, briefingId: body.briefingId ?? 'direct', content: body.content });
   return c.json({ status: 'triggered', event: 'owner_reply' });
 });
 

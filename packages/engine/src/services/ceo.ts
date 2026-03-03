@@ -2,13 +2,16 @@ import type { Plan, PlanOutput, BriefingContent, EscalationDiagnosis, OwnerReply
 import { FIELD_LABELS, PRECEPTS_FIELDS, type PreceptsDraft } from '@precept/shared';
 import { invokeAgent } from '../ai/invoke.js';
 import { CEO_PLANNING_SYSTEM_PROMPT, buildCEOPlanningMessage } from '../ai/prompts/ceo-planning.js';
+import { CEO_ESCALATION_SYSTEM_PROMPT, buildEscalationMessage } from '../ai/prompts/ceo-escalation.js';
+import { CEO_BRIEFING_SYSTEM_PROMPT, buildBriefingMessage } from '../ai/prompts/ceo-briefing.js';
+import { CEO_REPLY_PARSING_SYSTEM_PROMPT, buildReplyParsingMessage } from '../ai/prompts/ceo-reply-parsing.js';
 import { ScribeService } from './scribe.js';
 import { getLatestPrecepts } from '../db/precepts.js';
 import { getRecentLessons, logDecision } from '../db/decisions.js';
 import { getRecentFeedback } from '../db/owner-feedback.js';
-import { createInitiative } from '../db/initiatives.js';
-import { createPlan } from '../db/plans.js';
-import { createTasks, type CreateTaskParams } from '../db/tasks.js';
+import { createInitiative, getActiveInitiatives } from '../db/initiatives.js';
+import { createPlan, getUnapprovedPlans } from '../db/plans.js';
+import { createTasks, getTask, getTasksByState, type CreateTaskParams } from '../db/tasks.js';
 import { logMessage } from '../db/messages.js';
 import { logEvent } from '../db/audit.js';
 
@@ -144,16 +147,108 @@ export class CEOService {
     return plan;
   }
 
-  // Stubs — implemented in later phases
-  async handleEscalation(_taskId: string): Promise<EscalationDiagnosis> {
-    throw new Error('Not implemented — Phase 4');
+  async handleEscalation(taskId: string): Promise<EscalationDiagnosis> {
+    const task = await getTask(taskId);
+    if (!task) throw new Error(`Task not found: ${taskId}`);
+
+    const response = await invokeAgent('CEO-1', {
+      model: 'opus',
+      systemPrompt: CEO_ESCALATION_SYSTEM_PROMPT,
+      messages: [{
+        role: 'user',
+        content: buildEscalationMessage({
+          taskSpec: task.spec,
+          workerOutput: task.output?.output ?? null,
+          judgeReason: null, // TODO: read from last judge verdict transition
+          revisionCount: task.revision_count,
+        }),
+      }],
+      temperature: 0.5,
+      jsonMode: true,
+    });
+
+    const diagnosis = response.parsed as unknown as EscalationDiagnosis;
+    if (!diagnosis?.type) {
+      throw new Error('CEO produced invalid escalation diagnosis');
+    }
+
+    logEvent('task.escalated', 'CEO-1', { taskId, diagnosisType: diagnosis.type });
+    return diagnosis;
   }
 
-  async compileBriefing(_orgId: string): Promise<BriefingContent> {
-    throw new Error('Not implemented — Phase 5');
+  async compileBriefing(orgId: string): Promise<BriefingContent> {
+    const contextMsg = await this.scribe.compressContext(orgId);
+    const initiatives = await getActiveInitiatives(orgId);
+    const escalated = await getTasksByState(orgId, 'ESCALATED');
+
+    // Collect pending board requests from unapproved plans
+    const unapproved = await getUnapprovedPlans(orgId);
+    const boardRequests = unapproved.flatMap((p) =>
+      (p.content.board_requests ?? []).map((r) => r.request),
+    );
+
+    const response = await invokeAgent('CEO-1', {
+      model: 'opus',
+      systemPrompt: CEO_BRIEFING_SYSTEM_PROMPT,
+      messages: [{
+        role: 'user',
+        content: buildBriefingMessage({
+          contextPackage: typeof contextMsg.payload === 'string' ? contextMsg.payload : JSON.stringify(contextMsg.payload),
+          initiativeStates: initiatives.map((i) => ({
+            name: i.name,
+            phase: i.phase_current,
+            status: i.status,
+          })),
+          boardRequests,
+          escalations: escalated.map((t) => ({
+            taskDescription: t.spec.description,
+            reason: `Revision count: ${t.revision_count}`,
+          })),
+        }),
+      }],
+      temperature: 0.5,
+      jsonMode: true,
+    });
+
+    const content = response.parsed as unknown as BriefingContent;
+    if (!content?.results) {
+      throw new Error('CEO produced invalid briefing content');
+    }
+
+    logEvent('briefing.compiled', 'CEO-1', { orgId });
+    return content;
   }
 
-  async handleOwnerReply(_orgId: string, _content: string): Promise<OwnerReplyIntent> {
-    throw new Error('Not implemented — Phase 5');
+  async handleOwnerReply(orgId: string, content: string): Promise<OwnerReplyIntent> {
+    const initiatives = await getActiveInitiatives(orgId);
+
+    // Collect pending board requests
+    const unapproved = await getUnapprovedPlans(orgId);
+    const boardRequests = unapproved.flatMap((p) =>
+      (p.content.board_requests ?? []).map((r) => r.request),
+    );
+
+    const response = await invokeAgent('CEO-1', {
+      model: 'opus',
+      systemPrompt: CEO_REPLY_PARSING_SYSTEM_PROMPT,
+      messages: [{
+        role: 'user',
+        content: buildReplyParsingMessage({
+          rawReply: content,
+          initiativeNames: initiatives.map((i) => ({ id: i.id, name: i.name })),
+          pendingBoardRequests: boardRequests,
+        }),
+      }],
+      temperature: 0.3,
+      jsonMode: true,
+    });
+
+    const intent = response.parsed as unknown as OwnerReplyIntent;
+    if (!intent?.actions) {
+      throw new Error('CEO produced invalid reply intent');
+    }
+
+    logEvent('owner.reply', 'CEO-1', { orgId, actionCount: intent.actions.length });
+    return intent;
   }
 }
