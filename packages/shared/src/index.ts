@@ -3,3 +3,8 @@ export * from './onboarding';
 export * from './audit';
 export * from './documents';
 export * from './skills';
+export * from './message';
+export * from './tasks';
+export * from './plans';
+export * from './evaluation';
+export * from './briefing';
