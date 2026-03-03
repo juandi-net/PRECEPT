@@ -169,7 +169,7 @@ The organizational hierarchy doubles as a security model. Each role sees only wh
 
 - **Encryption at rest:** Supabase default (AES-256)
 - **Encryption in transit:** TLS for all connections
-- **Row-Level Security (RLS):** Enabled. Policies enforce access levels per agent tier. The engine uses scoped service roles.
+- **Row-Level Security (RLS):** Enabled on all tables with default-deny (no policies). The `anon` and `authenticated` roles have zero access. The engine uses `SUPABASE_SERVICE_ROLE_KEY`, which has the `BYPASSRLS` attribute and is unaffected. Per-role policies will be added when frontend auth is introduced.
 - **Audit log protection:** Append-only at the database level. INSERT only — no UPDATE or DELETE operations permitted. Enforced via Postgres policies.
 
 ### Credential Management
