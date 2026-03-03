@@ -1,4 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// Mock transitive dependencies that require env vars
+vi.mock('../../ai/client.js', () => ({
+  ai: {},
+  MODELS: { opus: 'test-opus', sonnet: 'test-sonnet' },
+}));
+
+vi.mock('../../ai/invoke.js', () => ({
+  invokeAgent: vi.fn(),
+}));
+
+vi.mock('../../db/client.js', () => ({
+  db: { from: vi.fn() },
+}));
+
+vi.mock('../../db/audit.js', () => ({
+  logEvent: vi.fn(),
+  getRecentEvents: vi.fn().mockResolvedValue([]),
+}));
+
 import { OrchestrationEngine } from '../engine.js';
 import type { EngineEvent } from '../engine.js';
 

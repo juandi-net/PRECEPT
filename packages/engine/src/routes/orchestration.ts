@@ -1,26 +1,46 @@
 import { Hono } from 'hono';
+import { OrchestrationEngine } from '../orchestration/engine.js';
+
+// Singleton engine instance — shared across routes
+const engine = new OrchestrationEngine();
+
+export { engine };
 
 export const orchestration = new Hono();
 
 orchestration.post('/trigger-planning', async (c) => {
-  // TODO: wire to engine.push({ type: 'planning_cycle', orgId })
-  return c.json({ status: 'queued', event: 'planning_cycle' });
+  const body = await c.req.json<{ orgId: string }>();
+  if (!body?.orgId) return c.json({ error: 'orgId required' }, 400);
+
+  engine.push({ type: 'planning_cycle', orgId: body.orgId });
+  return c.json({ status: 'triggered', event: 'planning_cycle' });
 });
 
 orchestration.post('/trigger-briefing', async (c) => {
-  // TODO: wire to engine.push({ type: 'briefing_cycle', orgId })
-  return c.json({ status: 'queued', event: 'briefing_cycle' });
+  const body = await c.req.json<{ orgId: string }>();
+  if (!body?.orgId) return c.json({ error: 'orgId required' }, 400);
+
+  engine.push({ type: 'briefing_cycle', orgId: body.orgId });
+  return c.json({ status: 'triggered', event: 'briefing_cycle' });
 });
 
 orchestration.post('/approve-plan/:planId', async (c) => {
   const { planId } = c.req.param();
-  // TODO: wire to engine.push({ type: 'plan_approved', orgId, planId })
-  return c.json({ status: 'queued', event: 'plan_approved', planId });
+  const body = await c.req.json<{ orgId: string }>();
+  if (!body?.orgId) return c.json({ error: 'orgId required' }, 400);
+
+  engine.push({ type: 'plan_approved', orgId: body.orgId, planId });
+  return c.json({ status: 'triggered', event: 'plan_approved', planId });
 });
 
 orchestration.post('/owner-reply', async (c) => {
-  // TODO: parse body, wire to engine.push({ type: 'owner_reply', orgId, briefingId })
-  return c.json({ status: 'queued', event: 'owner_reply' });
+  const body = await c.req.json<{ orgId: string; briefingId: string }>();
+  if (!body?.orgId || !body?.briefingId) {
+    return c.json({ error: 'orgId and briefingId required' }, 400);
+  }
+
+  engine.push({ type: 'owner_reply', orgId: body.orgId, briefingId: body.briefingId });
+  return c.json({ status: 'triggered', event: 'owner_reply' });
 });
 
 orchestration.get('/tasks/:planId', async (c) => {
