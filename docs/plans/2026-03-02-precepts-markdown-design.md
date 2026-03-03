@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Generate a human-readable `PRECEPTS.md` at the repo root when onboarding completes, so the org's guiding document is version-controlled and readable without a database query.
+**Goal:** Generate a human-readable `PRECEPTS.md` per organization when onboarding completes, so the org's guiding document is version-controlled and readable without a database query.
 
 **Architecture:** Add a `writePreceptsFile()` function to the onboarding service. Called from `completeSession()` after the Supabase write and before seed skill generation. Uses the same `import.meta.url` monorepo root resolution pattern as skill file writing.
 
@@ -32,7 +32,7 @@ Early growth — we have 12 clients but haven't found repeatable acquisition...
 
 ## File Location
 
-`PRECEPTS.md` at the monorepo root — same level as `README.md`, `package.json`. Not in `docs/` (those are system architecture docs; Precepts is the org's document).
+`data/orgs/{slug}/PRECEPTS.md` — each organization gets its own directory under `data/orgs/`. Not at the repo root (avoids clobbering by workspace tooling) and not in `docs/` (those are system architecture docs; Precepts is the org's document).
 
 ## Behavior
 
