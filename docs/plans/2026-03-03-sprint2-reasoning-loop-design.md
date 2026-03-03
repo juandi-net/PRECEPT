@@ -473,9 +473,11 @@ embedText(taskDescription, 'query') → 768-dim vector
   → Top-5 entries injected into worker context
 ```
 
-### Daily Memory Cleanup
+### Daily Memory Cleanup (Deferred)
 
-Scheduled via `memory_cleanup` event:
+The `deduplicate_role_memory` RPC function is created in the migration (SQL, costs nothing to have). But the daily `memory_cleanup` cron job is **not scheduled in Sprint 2** — it operates on entries 30+ days old, and Sprint 2 won't have entries that old. Add the scheduled job when there's meaningful data to clean (Sprint 3 or later).
+
+When activated, the job will:
 1. Flag entries where `last_retrieved_at` is 30+ days ago → `status: 'stale'`
 2. Deduplicate via `deduplicate_role_memory` RPC (Postgres self-join, cosine similarity > 0.95, archive older entry)
 3. No re-embedding needed — staleness is metadata, dedup is a vector operation in Postgres
