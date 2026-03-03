@@ -106,6 +106,47 @@ describe('OnboardingService', () => {
         expect.any(Object)
       );
     });
+
+    it('stores rawResponse on the CEO conversation message', async () => {
+      const mockSession = {
+        id: 'session-1',
+        status: 'in_progress' as const,
+        conversation: [],
+        preceptsDraft: {} as any,
+        extractionTracker: {
+          coveredTopics: [],
+          currentPhase: 1,
+          fieldsExtracted: [],
+          fieldsRemaining: [
+            'identity', 'product_service', 'stage', 'success_definition',
+            'resources', 'constraints', 'competitive_landscape', 'history',
+            'active_priorities', 'data_policy',
+          ],
+          activeThread: null,
+        },
+        contextDocuments: null,
+        startedAt: new Date().toISOString(),
+        completedAt: null,
+      };
+
+      const rawJson = JSON.stringify({
+        message: "Hello! I'm your new CEO.",
+        updatedTracker: mockSession.extractionTracker,
+        updatedFields: {},
+      });
+
+      vi.mocked(onboardingDb.createSession).mockResolvedValue(mockSession);
+      vi.mocked(ai.chat.completions.create).mockResolvedValue({
+        choices: [{ message: { content: rawJson }, index: 0, finish_reason: 'stop' }],
+        usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
+      } as any);
+
+      await service.startSession();
+
+      const updateCall = vi.mocked(onboardingDb.updateSession).mock.calls[0];
+      const savedConversation = updateCall[1].conversation!;
+      expect(savedConversation[0].rawResponse).toBe(rawJson);
+    });
   });
 
   describe('sendMessage', () => {
@@ -169,6 +210,57 @@ describe('OnboardingService', () => {
       expect(result.preceptsDraft.identity).toBeDefined();
       expect(result.preceptsDraft.identity?.state).toBe('hypothesis');
       expect(onboardingDb.updateSession).toHaveBeenCalled();
+    });
+
+    it('stores rawResponse on the CEO reply message', async () => {
+      const existingSession = {
+        id: 'session-1',
+        status: 'in_progress' as const,
+        conversation: [
+          { role: 'ceo' as const, content: 'Hello!', timestamp: new Date().toISOString() },
+        ],
+        preceptsDraft: {} as any,
+        extractionTracker: {
+          coveredTopics: [],
+          currentPhase: 1,
+          fieldsExtracted: [],
+          fieldsRemaining: [
+            'identity', 'product_service', 'stage', 'success_definition',
+            'resources', 'constraints', 'competitive_landscape', 'history',
+            'active_priorities', 'data_policy',
+          ],
+          activeThread: null,
+        },
+        contextDocuments: null,
+        startedAt: new Date().toISOString(),
+        completedAt: null,
+      };
+
+      vi.mocked(onboardingDb.getSession).mockResolvedValue(existingSession);
+
+      const rawJson = JSON.stringify({
+        message: "Tell me more!",
+        updatedTracker: {
+          ...existingSession.extractionTracker,
+          fieldsExtracted: ['identity'],
+        },
+        updatedFields: {
+          identity: { name: 'identity', content: 'A cool biz', state: 'hypothesis', notes: null },
+        },
+      });
+
+      vi.mocked(ai.chat.completions.create).mockResolvedValue({
+        choices: [{ message: { content: rawJson }, index: 0, finish_reason: 'stop' }],
+        usage: { prompt_tokens: 200, completion_tokens: 80, total_tokens: 280 },
+      } as any);
+
+      await service.sendMessage('session-1', 'We build stuff.');
+
+      const updateCall = vi.mocked(onboardingDb.updateSession).mock.calls[0];
+      const savedConversation = updateCall[1].conversation!;
+      // CEO reply is the last message in the conversation
+      const ceoReply = savedConversation[savedConversation.length - 1];
+      expect(ceoReply.rawResponse).toBe(rawJson);
     });
   });
 

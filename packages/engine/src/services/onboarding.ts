@@ -23,6 +23,11 @@ interface CEOResponse {
   updatedFields: Record<string, PreceptsField>;
 }
 
+interface CEOCallResult {
+  parsed: CEOResponse;
+  rawContent: string;
+}
+
 export class OnboardingService {
   async startSession(): Promise<StartSessionResponse> {
     const session = await onboardingDb.createSession();
@@ -36,11 +41,11 @@ export class OnboardingService {
     };
 
     const messages = buildOpeningMessages();
-    const ceoResponse = await this.callCEO(messages, initialTracker);
+    const { parsed: ceoResponse, rawContent } = await this.callCEO(messages, initialTracker);
 
     // Save CEO's opening message and tracker state
     const conversation: ConversationMessage[] = [
-      { role: 'ceo', content: ceoResponse.message, timestamp: new Date().toISOString() },
+      { role: 'ceo', content: ceoResponse.message, timestamp: new Date().toISOString(), rawResponse: rawContent },
     ];
 
     await onboardingDb.updateSession(session.id, {
@@ -71,7 +76,7 @@ export class OnboardingService {
 
     // Build prompt with tracker context and call CEO
     const messages = buildMessages(conversation, session.extractionTracker, session.preceptsDraft, session.contextDocuments);
-    const ceoResponse = await this.callCEO(messages, session.extractionTracker);
+    const { parsed: ceoResponse, rawContent } = await this.callCEO(messages, session.extractionTracker);
 
     // Merge updated fields into draft
     const updatedDraft = { ...session.preceptsDraft };
@@ -84,6 +89,7 @@ export class OnboardingService {
       role: 'ceo',
       content: ceoResponse.message,
       timestamp: new Date().toISOString(),
+      rawResponse: rawContent,
     });
 
     // Persist state
@@ -227,7 +233,7 @@ export class OnboardingService {
   private async callCEO(
     messages: Array<{ role: string; content: string }>,
     currentTracker: ExtractionTracker
-  ): Promise<CEOResponse> {
+  ): Promise<CEOCallResult> {
     const startMs = Date.now();
 
     const response = await ai.chat.completions.create({
@@ -262,7 +268,7 @@ export class OnboardingService {
       tokensOut,
     }, tokensUsed ?? undefined);
 
-    return parsed;
+    return { parsed, rawContent: content };
   }
 
   private extractCEOResponse(content: string, currentTracker: ExtractionTracker): CEOResponse {
