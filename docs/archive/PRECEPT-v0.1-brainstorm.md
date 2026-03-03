@@ -825,7 +825,7 @@ Task chain memory is project-specific and temporary. Role memory is cumulative a
 - [x] Cost budget per business per month → $200/mo flat (Claude Max subscription), no per-token costs
 - [x] Security model — see docs/security.md. All AI through CLIProxy → Anthropic. 🔴 data excluded from V0.1.
 - [ ] How the CEO handles conflicting priorities across organizations when multi-org is live
-- [ ] Vector DB choice for role memory (SQLite + embeddings vs dedicated solution)
+- [x] Vector DB choice for role memory → pgvector (Supabase) + EmbeddingGemma 300M (768-dim, local ONNX via @huggingface/transformers)
 - [ ] Memory Agent prompt design — how to extract, deduplicate, and structure knowledge entries
 - [ ] Role memory retention policy — when to archive stale entries
 - [ ] How task chain context scales when chains are long (summarization strategy)

@@ -152,7 +152,7 @@ Raw entries accumulate throughout the day. A daily batch process (run by the Scr
 
 When the Dispatcher assembles a worker's context for a task:
 
-1. Embed the task description using the same embedding model
+1. Embed the task description using EmbeddingGemma 300M (768-dim, local via `@huggingface/transformers`)
 2. Run semantic search against the role's knowledge base (pgvector similarity query)
 3. Return top-K relevant entries (configurable, start with K=5)
 4. Include in worker's context package alongside task spec, selected skills (see `skills.md`), chain context, and Team Bulletin
@@ -370,7 +370,7 @@ All four memory types live in Postgres (Supabase). Role memory embeddings use pg
 
 Estimated storage breakdown for V1 (first 3 months of operation):
 - Audit log: ~50-100MB (text-heavy, grows with activity)
-- Role memory + embeddings: ~10-20MB (text + 1536-dim vectors)
+- Role memory + embeddings: ~5-10MB (text + 768-dim vectors, EmbeddingGemma 300M)
 - Everything else: <5MB (structured data, small volume)
 
 Well within Supabase free tier (500MB).

@@ -28,6 +28,7 @@ precept/
 | Database | Supabase (Postgres + pgvector) | Free | Relational data + vector embeddings for role memory |
 | AI (all models) | CLIProxy → Claude Max subscription | $200/mo (flat) | All AI calls through one gateway. No per-token costs. |
 | Email | AgentMail | Free | Daily briefings + structured reply parsing via webhooks |
+| Embeddings | EmbeddingGemma 300M via `@huggingface/transformers` | Free | 768-dim vectors for role memory semantic search. Local, in-process, no external API. |
 | Monorepo tooling | bun workspaces | — | Shared types, single install, native TS execution |
 
 **Total cost: $200/mo (Claude Max subscription). All hosting is free tier.**
