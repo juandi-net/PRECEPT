@@ -1,3 +1,6 @@
+import { writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { ai, MODELS } from '../ai/client.js';
 import { buildMessages, buildOpeningMessages } from '../ai/prompts/ceo-onboarding.js';
 import * as onboardingDb from '../db/onboarding.js';
@@ -13,7 +16,10 @@ import type {
   OnboardingSession,
   ContextDocument,
 } from '@precept/shared';
-import { PRECEPTS_FIELDS, extractText, ALLOWED_MIME_TYPES, type PreceptsDraft, type PreceptsField, type PreceptsFieldName } from '@precept/shared';
+import { PRECEPTS_FIELDS, FIELD_LABELS, extractText, ALLOWED_MIME_TYPES, type PreceptsDraft, type PreceptsField, type PreceptsFieldName } from '@precept/shared';
+
+const __dirname = join(fileURLToPath(import.meta.url), '..');
+const MONOREPO_ROOT = join(__dirname, '..', '..', '..', '..');
 
 const AGENT_ID = 'ceo-onboarding';
 
@@ -163,7 +169,9 @@ export class OnboardingService {
       sessionId,
     });
 
-    // Step 3 from onboarding.md Lock & Launch sequence:
+    // Write PRECEPTS.md to repo root
+    await writePreceptsFile(finalDraft);
+
     // Generate seed skill files from Precepts content
     const skillService = new SeedSkillService();
     await skillService.generateSeedSkills(finalDraft);
@@ -301,4 +309,22 @@ export class OnboardingService {
       updatedFields: {},
     };
   }
+}
+
+async function writePreceptsFile(draft: PreceptsDraft): Promise<void> {
+  const sections: string[] = [];
+
+  for (const fieldName of PRECEPTS_FIELDS) {
+    const field = draft[fieldName];
+    if (!field || !field.content) continue;
+
+    const label = FIELD_LABELS[fieldName];
+    const stateMarker = field.state !== 'confirmed' ? ` *(${field.state.replace('_', ' ')})*` : '';
+    sections.push(`## ${label}${stateMarker}\n\n${field.content}`);
+  }
+
+  const date = new Date().toISOString().split('T')[0];
+  const markdown = `# Precepts\n\nGenerated from onboarding session on ${date}.\n\n${sections.join('\n\n')}\n`;
+
+  await writeFile(join(MONOREPO_ROOT, 'PRECEPTS.md'), markdown, 'utf-8');
 }
