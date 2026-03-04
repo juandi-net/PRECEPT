@@ -138,7 +138,7 @@ export class OrchestrationEngine {
     }
 
     console.log(`[engine] recovery scan done (${((Date.now() - start) / 1000).toFixed(1)}s)`);
-    logEvent(orgId, 'planning.cycle', 'Engine', { recovery: 'scan_complete', orgId });
+    logEvent(orgId, 'engine.recovery', 'Engine', { recovery: 'scan_complete', orgId });
   }
 
   // --- Handlers ---

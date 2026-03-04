@@ -33,7 +33,8 @@ export type AuditEventType =
   | 'owner.reply'
   | 'owner.action'
   | 'memory.stored'
-  | 'memory.queried';
+  | 'memory.queried'
+  | 'engine.recovery';
 
 export interface AuditEntry {
   id: string;
