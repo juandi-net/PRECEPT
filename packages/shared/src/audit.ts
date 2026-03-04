@@ -35,7 +35,8 @@ export type AuditEventType =
   | 'owner.action'
   | 'memory.stored'
   | 'memory.queried'
-  | 'engine.recovery';
+  | 'engine.recovery'
+  | 'engine.phase_completed';
 
 export interface AuditEntry {
   id: string;

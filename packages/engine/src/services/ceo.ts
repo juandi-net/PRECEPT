@@ -168,7 +168,6 @@ export class CEOService {
   }
 
   async handleEscalation(taskId: string): Promise<EscalationDiagnosis> {
-    const start = Date.now();
     const task = await getTask(taskId);
     if (!task) throw new Error(`Task not found: ${taskId}`);
 
@@ -194,8 +193,6 @@ export class CEOService {
       throw new Error('CEO produced invalid escalation diagnosis');
     }
 
-    console.log(`[ceo] escalation done — diagnosis: ${diagnosis.type} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
-    logEvent(task.org_id, 'task.escalated', 'CEO-1', { taskId, diagnosisType: diagnosis.type });
     return diagnosis;
   }
 

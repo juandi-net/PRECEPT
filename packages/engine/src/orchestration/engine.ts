@@ -70,6 +70,8 @@ export class OrchestrationEngine {
         return this.handleJudgeVerdict(event.orgId, event.taskId);
       case 'escalation':
         return this.handleEscalation(event.orgId, event.taskId);
+      case 'phase_completed':
+        return this.handlePhaseCompleted(event.orgId, event.initiativeId, event.phase);
       case 'owner_reply':
         return this.handleOwnerReply(event.orgId, event.content);
       default:
@@ -408,6 +410,22 @@ export class OrchestrationEngine {
       console.error(`[ceo] escalation failed for task ${taskId.slice(0, 8)}: ${err instanceof Error ? err.message : String(err)}`);
       logEvent(orgId, 'task.escalated', 'Engine', { taskId, error: 'escalation handler not yet implemented' });
     }
+  }
+
+  private async handlePhaseCompleted(orgId: string, initiativeId: string, phase: number): Promise<void> {
+    console.log(`[engine] phase ${phase} completed for initiative ${initiativeId.slice(0, 8)}`);
+    logEvent(orgId, 'engine.phase_completed', 'Engine', { initiativeId, phase });
+
+    // Find a PLANNED task from this initiative to get the plan for dispatch
+    const planned = await getTasksByState(orgId, 'PLANNED');
+    const nextTask = planned.find(t => t.initiative_id === initiativeId);
+
+    if (!nextTask) {
+      console.log(`[engine] all tasks dispatched for initiative ${initiativeId.slice(0, 8)}`);
+      return;
+    }
+
+    await this.dispatchReadyTasks(orgId, nextTask.id);
   }
 
   private async handleOwnerReply(orgId: string, content: string): Promise<void> {
