@@ -154,18 +154,18 @@ export class OrchestrationEngine {
     const content = await this.ceo.compileBriefing(orgId);
     logEvent('briefing.compiled', 'Engine', { orgId });
 
-    // Deliver briefing (AgentMail or log)
-    if (process.env.AGENTMAIL_API_KEY) {
-      const { sendBriefing, briefingToHtml } = await import('../lib/agentmail.js');
+    // Deliver briefing (Resend or log)
+    if (process.env.RESEND_API_KEY) {
+      const { sendBriefing, briefingToHtml } = await import('../lib/email.js');
       await sendBriefing({
-        to: process.env.AGENTMAIL_FROM_ADDRESS ?? 'owner@org',
+        to: process.env.OWNER_EMAIL ?? 'owner@org',
         orgName: orgId,
         date: new Date().toISOString().split('T')[0],
         htmlContent: briefingToHtml(content),
       });
-      logEvent('briefing.sent', 'Engine', { orgId, method: 'agentmail' });
+      logEvent('briefing.sent', 'Engine', { orgId, method: 'resend' });
     } else {
-      console.log('[engine] briefing compiled but AgentMail not configured — skipping delivery');
+      console.log('[engine] briefing compiled but Resend not configured — skipping delivery');
       logEvent('briefing.sent', 'Engine', { orgId, method: 'skipped' });
     }
   }

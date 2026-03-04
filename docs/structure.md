@@ -182,7 +182,7 @@ GATE 2: JUDGE (Outcome)
 
 ### Daily Briefing
 - **When:** Scheduled (e.g., 7am)
-- **Who:** CEO compiles, sent via AgentMail
+- **Who:** CEO compiles, sent via Resend
 - **What:** Not a planning call — a reporting call. Summarizes yesterday's activity, decisions needed, what's in progress, what's next.
 - **Output:** Email to owner. Owner replies inline with approvals/redirects/holds.
 

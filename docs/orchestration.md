@@ -49,7 +49,7 @@ Three entry points feed into a single orchestration core:
 
 **Entry points:**
 1. **Scheduler (node-cron)** — triggers weekly planning cycle, daily briefing compilation
-2. **Webhook handler (HTTP)** — receives AgentMail reply events, Decision Room API calls
+2. **Webhook handler (HTTP)** — receives Resend inbound email events, Decision Room API calls
 3. **DB listener** — watches for task state changes (worker completions, verdict returns)
 4. **Onboarding completion** — `/api/onboarding/complete` endpoint triggers the first CEO cycle after Lock & Launch (see `onboarding.md`). The Scribe is skipped for this first invocation — no activity to compress yet. CEO receives Precepts only.
 
@@ -234,7 +234,7 @@ Each agent receives only the context relevant to its function. No agent sees eve
 5. Advisor verdict:
    - **APPROVED** → plan stored in Supabase, queued for owner approval
    - **APPROVED WITH CONCERNS** → plan + annotations stored, queued for owner
-   - **FLAGGED** → plan + Advisor's concerns sent to owner via AgentMail
+   - **FLAGGED** → plan + Advisor's concerns sent to owner via Resend
 6. Owner approves (email reply webhook or Decision Room) → Dispatcher receives plan → execution begins
 
 ### Daily Briefing
@@ -245,8 +245,8 @@ See `interface.md` for the briefing format, information hierarchy, and reply par
 
 1. Scribe compresses yesterday's activity
 2. CEO compiles briefing: results, decisions needed, what's in progress, Board Requests
-3. Briefing sent to owner via AgentMail
-4. Owner replies → AgentMail parses to JSON → webhook → engine updates state:
+3. Briefing sent to owner via Resend
+4. Owner replies → Resend sends `email.received` webhook with metadata → engine calls `resend.emails.get(emailId)` to fetch body → CEO does LLM-based intent extraction → engine updates state:
    - Approvals → relevant tasks/initiatives proceed
    - Holds → Dispatcher pauses specified work
    - Redirects → CEO invoked to replan affected initiatives
@@ -299,7 +299,7 @@ This runs as a Supabase function or Scribe invocation — no CEO involvement. Th
 All execution state is in Supabase. The engine is stateless. On restart:
 
 1. **Scheduler** re-initializes cron jobs (next scheduled event fires at the right time)
-2. **Webhook handler** starts listening for AgentMail and Decision Room events
+2. **Webhook handler** starts listening for Resend and Decision Room events
 3. **Dispatcher** queries current state from Supabase:
    - Tasks in QUEUED → dispatch them
    - Tasks in DISPATCHED/IN_PROGRESS → check against configurable timeout per task type

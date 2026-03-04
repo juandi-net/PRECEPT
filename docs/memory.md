@@ -94,7 +94,7 @@ PATTERN: Owner has now rejected small-company targeting twice.
 INFERRED PREFERENCE: Minimum company size = 200 employees for outreach targeting.
 ```
 
-Over time, this teaches the CEO the owner's judgment patterns. Parsed from email replies (via AgentMail) and Decision Room interactions. This data also drives interface adaptation — briefing density, Board Request frequency, and communication style calibrate to the owner's preferences over time (see `interface.md`, principle 8).
+Over time, this teaches the CEO the owner's judgment patterns. Parsed from email replies (via Resend) and Decision Room interactions. This data also drives interface adaptation — briefing density, Board Request frequency, and communication style calibrate to the owner's preferences over time (see `interface.md`, principle 8).
 
 **Who writes:** Engine (automatic parsing of owner responses).
 **Who reads:** CEO (learns owner preferences over time), Scribe (includes in CEO context).

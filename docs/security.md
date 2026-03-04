@@ -87,7 +87,7 @@ Every external service is a trust boundary where data crosses from PRECEPT's con
 │  │ Anthropic's data policies apply.      │                       │
 │  └──────────────────────────────────────┘                       │
 │                                                                  │
-│  Supabase                            AgentMail                   │
+│  Supabase                            Resend                     │
 │  ┌──────────────────────┐           ┌──────────────────────┐    │
 │  │ HIGH TRUST            │           │ MEDIUM TRUST          │    │
 │  │                       │           │                       │    │
@@ -180,7 +180,7 @@ V0.1 has fewer credentials to manage than the original multi-provider design:
 |---|---|---|
 | CLIProxy OAuth tokens | Fly.io env vars (encrypted) | All AI model calls |
 | Supabase service role key | Fly.io env vars (encrypted) | Database access |
-| AgentMail API key | Fly.io env vars (encrypted) | Email send/receive |
+| Resend API key | Fly.io env vars (encrypted) | Email send/receive |
 | Vercel deploy token | GitHub secrets (encrypted) | Frontend deployment |
 
 **Key rules:**

@@ -27,7 +27,7 @@ precept/
 | Engine | Standalone TS service on Fly.io (Docker) | Free | Orchestration, scheduling, agent dispatch |
 | Database | Supabase (Postgres + pgvector) | Free | Relational data + vector embeddings for role memory |
 | AI (all models) | CLIProxy → Claude Max subscription | $200/mo (flat) | All AI calls through one gateway. No per-token costs. |
-| Email | AgentMail | Free | Daily briefings + structured reply parsing via webhooks |
+| Email | Resend | Free | Daily briefings + inbound reply parsing via webhooks. Free tier: 100 emails/day, 1 custom domain, inbound webhooks. |
 | Embeddings | EmbeddingGemma 300M via `@huggingface/transformers` | Free | 768-dim vectors for role memory semantic search. Local, in-process, no external API. |
 | Monorepo tooling | bun workspaces | — | Shared types, single install, native TS execution |
 
@@ -64,12 +64,12 @@ All AI calls route through CLIProxy, which proxies the Claude Max subscription v
            │ Web UI                           │ Email reply
            ▼                                  ▼
 ┌─────────────────────┐            ┌─────────────────────┐
-│   Next.js Frontend  │            │     AgentMail       │
+│   Next.js Frontend  │            │       Resend        │
 │   (Vercel — free)   │            │     (free tier)     │
 │                     │            │                     │
 │ • Onboarding chat   │            │ • Daily briefings   │
-│ • Decision Room     │            │ • Reply → JSON      │
-│ • Precepts editor   │            │ • Webhook to engine │
+│ • Decision Room     │            │ • Inbound webhooks  │
+│ • Precepts editor   │            │ • Custom domain     │
 └────────┬────────────┘            └──────────┬──────────┘
          │ API calls                          │ Webhooks
          ▼                                    ▼
@@ -138,8 +138,8 @@ All AI calls route through CLIProxy, which proxies the Claude Max subscription v
 
 ### Data Flow Summary
 
-1. **Scheduled cycle:** node-cron triggers → Scribe compresses context from Supabase → CEO plans via CLIProxy (Opus) → Dispatcher routes tasks → Workers execute via CLIProxy (Sonnet) → Reviewer evaluates → Judge evaluates → results stored in Supabase → briefing compiled → sent via AgentMail
-2. **Owner reply:** owner replies to email → AgentMail parses to JSON → webhook hits engine → engine updates state in Supabase → may trigger CEO cycle
+1. **Scheduled cycle:** node-cron triggers → Scribe compresses context from Supabase → CEO plans via CLIProxy (Opus) → Dispatcher routes tasks → Workers execute via CLIProxy (Sonnet) → Reviewer evaluates → Judge evaluates → results stored in Supabase → briefing compiled → sent via Resend
+2. **Owner reply:** owner replies to email → Resend sends `email.received` webhook with metadata → engine calls `resend.emails.get(emailId)` to fetch body → engine updates state in Supabase → may trigger CEO cycle
 3. **Web interaction:** owner uses Next.js UI → API calls to engine → engine reads/writes Supabase → real-time updates in dashboard
 
 ## Key Decisions & Reasoning
@@ -161,8 +161,8 @@ Claude Max subscription ($200/mo) provides flat-rate access to Opus 4.6 and Sonn
 ### Fly.io over Railway/Render
 Always-on free tier (no spindown). Engine needs to receive webhooks reliably and run scheduled CEO cycles. Render free tier spins down after 15 min (breaks webhooks). Railway is $5/mo for equivalent. Fly.io free tier stays on. CEO cycle scheduling via node-cron in the engine.
 
-### AgentMail over Resend
-Built-in structured data extraction (email → JSON) handles the hard part: parsing owner's inline replies to briefing emails into actionable decisions. Resend would require building reply parsing from scratch.
+### Why Resend
+Each PRECEPT org needs branded email — `ceo@mail.asylo.com`, `ceo@mail.rookiesports.org` — not a generic platform address. Resend's free tier includes 1 custom domain, inbound email via webhooks, and 100 emails/day. In the multi-org model, each org owner creates their own free Resend account with their own domain, so PRECEPT scales to unlimited orgs at zero email cost. Reply parsing is handled by the CEO via LLM-based intent extraction rather than a built-in email-to-JSON service.
 
 ## Migration Path (V2 — Mac Studio)
 
