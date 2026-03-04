@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { BriefingContent } from '@precept/shared';
-import { briefingToHtml } from '../agentmail.js';
+import { briefingToHtml } from '../email.js';
 
 const SAMPLE_CONTENT: BriefingContent = {
   board_requests: [

@@ -1,4 +1,11 @@
+import { Resend } from 'resend';
 import type { BriefingContent } from '@precept/shared';
+
+const getResendClient = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return null;
+  return new Resend(apiKey);
+};
 
 export async function sendBriefing(params: {
   to: string;
@@ -6,30 +13,24 @@ export async function sendBriefing(params: {
   date: string;
   htmlContent: string;
 }): Promise<void> {
-  const apiKey = process.env.AGENTMAIL_API_KEY;
-  if (!apiKey) {
-    console.log('[agentmail] AGENTMAIL_API_KEY not set — skipping send');
+  const resend = getResendClient();
+  if (!resend) {
+    console.log('[email] RESEND_API_KEY not set — skipping send');
     return;
   }
 
-  const fromAddress = process.env.AGENTMAIL_FROM_ADDRESS ?? 'briefing@precept.ai';
+  const fromDomain = process.env.RESEND_FROM_DOMAIN ?? 'mail.rookiesports.org';
 
-  const response = await fetch('https://api.agentmail.to/v0/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: fromAddress,
-      to: params.to,
-      subject: `[${params.orgName}] — Daily Briefing — ${params.date}`,
-      html: params.htmlContent,
-    }),
+  const { error } = await resend.emails.send({
+    from: `CEO <ceo@${fromDomain}>`,
+    to: params.to,
+    subject: `[${params.orgName}] — Daily Briefing — ${params.date}`,
+    html: params.htmlContent,
+    replyTo: `ceo@${fromDomain}`,
   });
 
-  if (!response.ok) {
-    throw new Error(`AgentMail send failed: ${response.status} ${response.statusText}`);
+  if (error) {
+    throw new Error(`Resend send failed: ${error.message}`);
   }
 }
 

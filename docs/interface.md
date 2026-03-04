@@ -88,7 +88,7 @@ The WWII cockpit studies proved the inverse: when information comes through a si
 
 | Channel | Modality | Best For | PRECEPT Implementation |
 |---|---|---|---|
-| **Morning Briefing** | Email (async, text) | Compressed state, decisions needed, progress | Daily email via AgentMail |
+| **Morning Briefing** | Email (async, text) | Compressed state, decisions needed, progress | Daily email via Resend |
 | **Decision Room** | Web UI (active, visual) | Deep investigation, initiative review, direct CEO conversation | Next.js dashboard |
 | **Board Requests** | Structured prompts within briefing | Specific actions only the owner can take | Top of briefing, clearly marked |
 | **Precepts Editor** | Direct document editing (web) | Strategic corrections, constraint changes | In Decision Room |
@@ -264,7 +264,7 @@ This is counterintuitive for people used to dashboards where more activity = mor
 
 ### Mode 1: Morning Briefing (Daily, Asynchronous — Primary Interface)
 
-The owner's main touchpoint. Email from the CEO via AgentMail. Read in 5-10 minutes over coffee.
+The owner's main touchpoint. Email from the CEO via Resend. Read in 5-10 minutes over coffee.
 
 **Structure:**
 
@@ -304,10 +304,10 @@ Full details: [Decision Room link]
 - Results lead with the north star metric — the one number the owner cares about most
 - Initiative summaries describe outcomes, not activities ("Identified 4 matching prospects" not "Researcher completed Task-047")
 - Forward Look is brief — the owner knows what's coming without needing to monitor
-- Inline reply parsing via AgentMail JSON extraction handles the owner's response
+- Inline reply parsing via CEO LLM-based intent extraction handles the owner's response
 
 **Reply parsing:**
-The owner replies to the email naturally. AgentMail extracts structured data:
+The owner replies to the email naturally. Resend delivers metadata via webhook; the engine calls `resend.emails.get(emailId)` to fetch the full body. The CEO then performs LLM-based intent extraction:
 - "Approved" / "approved #1" → approval signal for specified items
 - "Hold #2" → pause specified initiative or task
 - "Pivot #3 to X" → CEO receives redirect, replans affected initiative
@@ -463,7 +463,7 @@ The briefing should have the confidence to be short when there's nothing to say.
 ## Appendix: V0.1 Implementation Scope
 
 ### What's Built in V0.1
-- Morning Briefing via AgentMail (email send + structured reply parsing)
+- Morning Briefing via Resend (email send + inbound reply via webhook)
 - Onboarding UI (split-screen interview chat + live Precepts builder) — see `onboarding.md`
 - Decision Room: Active Initiatives, Output Gallery, Precepts Editor, CEO Chat
 - Briefing reply parsing (approval/hold/redirect extraction)
@@ -477,9 +477,9 @@ The briefing should have the confidence to be short when there's nothing to say.
 
 ### Interface Implementation Notes
 
-**Briefing generation:** The CEO compiles the briefing as the final step of its daily cycle. The briefing is a structured output (sections, Board Requests, exceptions, results, forward look) that the engine formats into email HTML and sends via AgentMail.
+**Briefing generation:** The CEO compiles the briefing as the final step of its daily cycle. The briefing is a structured output (sections, Board Requests, exceptions, results, forward look) that the engine formats into email HTML and sends via Resend.
 
-**Reply parsing:** AgentMail extracts JSON from the owner's email reply. The engine maps extracted intent to state changes: approvals → proceed signals, holds → pause signals, redirects → CEO input for next cycle. Ambiguous replies → CEO requests clarification in next briefing.
+**Reply parsing:** Resend sends an `email.received` webhook with metadata. The engine calls `resend.emails.get(emailId)` to fetch the full reply body, then passes it to the CEO for LLM-based intent extraction. The engine maps extracted intent to state changes: approvals → proceed signals, holds → pause signals, redirects → CEO input for next cycle. Ambiguous replies → CEO requests clarification in next briefing.
 
 **Decision Room real-time updates:** Supabase realtime subscriptions push state changes to the Next.js frontend. When a task moves from REVIEW to ACCEPTED, the initiative view updates immediately. The owner never needs to refresh.
 
