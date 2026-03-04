@@ -29,8 +29,18 @@ CREATE TABLE ceo_chat_messages (
 CREATE INDEX idx_ceo_chat_org ON ceo_chat_messages(org_id, created_at);
 
 -- Enable realtime on new tables + existing tables needed by frontend
-ALTER PUBLICATION supabase_realtime ADD TABLE board_requests;
-ALTER PUBLICATION supabase_realtime ADD TABLE ceo_chat_messages;
-ALTER PUBLICATION supabase_realtime ADD TABLE tasks;
-ALTER PUBLICATION supabase_realtime ADD TABLE initiatives;
-ALTER PUBLICATION supabase_realtime ADD TABLE audit_log;
+-- Use DO block to skip tables already in the publication
+DO $$
+DECLARE
+  t TEXT;
+BEGIN
+  FOR t IN SELECT unnest(ARRAY['board_requests','ceo_chat_messages','tasks','initiatives','audit_log'])
+  LOOP
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables
+      WHERE pubname = 'supabase_realtime' AND tablename = t
+    ) THEN
+      EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE %I', t);
+    END IF;
+  END LOOP;
+END $$;
