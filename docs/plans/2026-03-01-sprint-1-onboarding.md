@@ -24,7 +24,7 @@ These are documented gaps, not bugs. Do not over-engineer solutions for them in 
 
 2. **No session resume in the frontend.** If the owner closes the tab, the frontend creates a new session on mount. The `/status` endpoint exists and the engine supports resume, but the frontend doesn't use it. Sprint 2: store sessionId in localStorage or URL params, check `/status` on mount.
 
-3. **CORS is hardcoded to one origin.** `process.env.FRONTEND_URL || 'http://localhost:3000'`. Fine for local dev. Will need updating for deployment (Fly.io engine + Vercel frontend on different domains).
+3. **CORS is hardcoded to one origin.** `process.env.FRONTEND_URL || 'http://localhost:3000'`. Fine for local dev. Will need updating for deployment (engine on Mac Mini behind Cloudflare Tunnel + Vercel frontend on different domains).
 
 4. **Single-user only.** No `owner_id` authentication or multi-tenancy. The `owner_id` column exists in the schema (nullable) for forward-compatibility, but nothing populates or checks it.
 

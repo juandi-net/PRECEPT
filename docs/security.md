@@ -178,9 +178,9 @@ V0.1 has fewer credentials to manage than the original multi-provider design:
 
 | Credential | Stored In | Purpose |
 |---|---|---|
-| CLIProxy OAuth tokens | Fly.io env vars (encrypted) | All AI model calls |
-| Supabase service role key | Fly.io env vars (encrypted) | Database access |
-| Resend API key | Fly.io env vars (encrypted) | Email send/receive |
+| CLIProxy OAuth tokens | Local `.env` file (V0.1); Fly.io secrets for cloud migration | All AI model calls |
+| Supabase service role key | Local `.env` file (V0.1); Fly.io secrets for cloud migration | Database access |
+| Resend API key | Local `.env` file (V0.1); Fly.io secrets for cloud migration | Email send/receive |
 | Vercel deploy token | GitHub secrets (encrypted) | Frontend deployment |
 
 **Key rules:**

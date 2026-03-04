@@ -12,7 +12,7 @@ See `structure.md` for the organizational hierarchy and evaluation flow, `skills
 
 ## Engine Architecture
 
-The engine is a standalone TypeScript service running in Docker on Fly.io. It is stateless — all execution state lives in Supabase. The engine can restart at any time without data loss.
+The engine is a standalone TypeScript service running locally on the Mac Mini as a macOS launchd service. It is stateless — all execution state lives in Supabase. The engine can restart at any time without data loss. Resend webhooks and Vercel frontend API calls reach the engine via Cloudflare Tunnel (`dev.rookiesports.org` → `localhost:3001`).
 
 Three entry points feed into a single orchestration core:
 
