@@ -68,12 +68,16 @@ export function CeoChat({ orgId }: { orgId: string }) {
     setIsThinking(true)
 
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_ENGINE_URL}/api/orchestration/ceo-chat`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_ENGINE_URL}/api/orchestration/ceo-chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orgId, message }),
       })
-      // Real-time subscription will update messages
+      if (!res.ok) {
+        console.error('Engine returned', res.status)
+        setIsThinking(false)
+      }
+      // Real-time subscription will update messages on success
     } catch (err) {
       console.error('Failed to send chat message:', err)
       setIsThinking(false)

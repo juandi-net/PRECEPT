@@ -74,7 +74,10 @@ orchestration.post('/board-requests/:id/respond', async (c) => {
     return c.json({ error: 'orgId and response required' }, 400);
   }
 
-  await respondToBoardRequest(id, body.response);
+  const updated = await respondToBoardRequest(id, body.response);
+  if (!updated) {
+    return c.json({ error: 'Board request not found' }, 404);
+  }
 
   engine.push({
     type: 'owner_reply',

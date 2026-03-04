@@ -6,9 +6,9 @@
 CREATE OR REPLACE FUNCTION user_owns_org(check_org_id UUID)
 RETURNS BOOLEAN AS $$
   SELECT EXISTS (
-    SELECT 1 FROM orgs WHERE id = check_org_id AND owner_id = auth.uid()
+    SELECT 1 FROM public.orgs WHERE id = check_org_id AND owner_id = auth.uid()
   );
-$$ LANGUAGE sql SECURITY DEFINER STABLE;
+$$ LANGUAGE sql SECURITY DEFINER STABLE SET search_path = '';
 
 -- Drop existing current_setting-based policies from 00005
 DROP POLICY IF EXISTS org_isolation_onboarding ON onboarding_sessions;
