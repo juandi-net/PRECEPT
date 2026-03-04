@@ -29,6 +29,9 @@ export class CEOService {
   private scribe = new ScribeService();
 
   async planningCycle(orgId: string): Promise<Plan> {
+    const start = Date.now();
+    console.log('[ceo] starting plan generation...');
+
     // 1. Read Precepts
     const precepts = await getLatestPrecepts(orgId);
     if (!precepts) throw new Error(`No Precepts found for org ${orgId}`);
@@ -147,19 +150,24 @@ export class CEOService {
       payload: { planId: plan.id },
     });
 
+    const initiativeCount = planOutput.initiatives.length;
+    const taskCount = planOutput.initiatives.reduce(
+      (sum, i) => sum + i.phases.reduce((s, p) => s + p.tasks.length, 0),
+      0,
+    );
+
+    console.log(`[ceo] done — ${initiativeCount} initiatives, ${taskCount} tasks (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     logEvent(orgId, 'planning.cycle', 'CEO-1', {
       planId: plan.id,
-      initiativeCount: planOutput.initiatives.length,
-      taskCount: planOutput.initiatives.reduce(
-        (sum, i) => sum + i.phases.reduce((s, p) => s + p.tasks.length, 0),
-        0,
-      ),
+      initiativeCount,
+      taskCount,
     });
 
     return plan;
   }
 
   async handleEscalation(taskId: string): Promise<EscalationDiagnosis> {
+    const start = Date.now();
     const task = await getTask(taskId);
     if (!task) throw new Error(`Task not found: ${taskId}`);
 
@@ -185,11 +193,14 @@ export class CEOService {
       throw new Error('CEO produced invalid escalation diagnosis');
     }
 
+    console.log(`[ceo] escalation done — diagnosis: ${diagnosis.type} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     logEvent(task.org_id, 'task.escalated', 'CEO-1', { taskId, diagnosisType: diagnosis.type });
     return diagnosis;
   }
 
   async compileBriefing(orgId: string): Promise<BriefingContent> {
+    const start = Date.now();
+    console.log('[ceo] starting briefing compilation...');
     const contextMsg = await this.scribe.compressContext(orgId);
     const initiatives = await getActiveInitiatives(orgId);
     const escalated = await getTasksByState(orgId, 'ESCALATED');
@@ -229,11 +240,13 @@ export class CEOService {
       throw new Error('CEO produced invalid briefing content');
     }
 
+    console.log(`[ceo] briefing compiled (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     logEvent(orgId, 'briefing.compiled', 'CEO-1', { orgId });
     return content;
   }
 
   async handleOwnerReply(orgId: string, content: string): Promise<OwnerReplyIntent> {
+    const start = Date.now();
     const initiatives = await getActiveInitiatives(orgId);
 
     // Collect pending board requests
@@ -263,6 +276,7 @@ export class CEOService {
       throw new Error('CEO produced invalid reply intent');
     }
 
+    console.log(`[ceo] owner reply parsed — ${intent.actions.length} actions (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     logEvent(orgId, 'owner.reply', 'CEO-1', { orgId, actionCount: intent.actions.length });
     return intent;
   }

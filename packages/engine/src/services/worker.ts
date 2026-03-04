@@ -10,7 +10,9 @@ export class WorkerService {
    * The engine handles state transitions — this just produces the WorkerOutput.
    */
   async execute(task: Task): Promise<WorkerOutput> {
+    const start = Date.now();
     const agentId = task.assigned_worker ?? `Worker-${task.role}-1`;
+    console.log(`[worker] starting task ${task.id.slice(0, 8)}...`);
 
     const response = await invokeAgent(agentId, {
       orgId: task.org_id,
@@ -35,6 +37,7 @@ export class WorkerService {
       hasFlag: parsed.flag !== null,
     });
 
+    console.log(`[worker] task ${task.id.slice(0, 8)} done (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     return parsed;
   }
 }

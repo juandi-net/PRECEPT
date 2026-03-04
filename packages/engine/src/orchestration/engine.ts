@@ -78,6 +78,8 @@ export class OrchestrationEngine {
   // --- Recovery ---
 
   async recoverFromRestart(orgId: string): Promise<void> {
+    const start = Date.now();
+    console.log('[engine] starting recovery scan...');
     const timeoutMs = parseInt(process.env.TASK_TIMEOUT_MS ?? '600000', 10);
     const now = Date.now();
 
@@ -102,7 +104,8 @@ export class OrchestrationEngine {
             payload: { taskId: task.id, flag: output.flag },
           });
         }
-      } catch {
+      } catch (err) {
+        console.error(`[engine] recovery worker failed for task ${task.id}: ${err instanceof Error ? err.message : String(err)}`);
         try { await applyTransition(task.id, 'FAILED', 'Engine', 'recovery worker error'); } catch { /* ignore */ }
       }
     }
@@ -115,7 +118,9 @@ export class OrchestrationEngine {
       if (now - updatedAt > timeoutMs) {
         try {
           await applyTransition(task.id, 'FAILED', 'Engine', 'recovery timeout');
-        } catch { /* may not be in valid state */ }
+        } catch (err) {
+          console.error(`[engine] recovery transition failed for task ${task.id}: ${err instanceof Error ? err.message : String(err)}`);
+        }
         logEvent(orgId, 'task.transition', 'Engine', { taskId: task.id, recovery: 'timeout → FAILED' });
       }
     }
@@ -132,25 +137,30 @@ export class OrchestrationEngine {
       this.push({ type: 'judge_verdict', orgId, taskId: task.id });
     }
 
+    console.log(`[engine] recovery scan done (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     logEvent(orgId, 'planning.cycle', 'Engine', { recovery: 'scan_complete', orgId });
   }
 
   // --- Handlers ---
 
   private async handlePlanningCycle(orgId: string): Promise<void> {
+    const start = Date.now();
     const plan = await this.ceo.planningCycle(orgId);
     const { verdict } = await this.advisor.reviewPlan(plan.id);
 
     if (verdict === 'FLAGGED') {
+      console.log(`[engine] planning cycle done — flagged for owner (${((Date.now() - start) / 1000).toFixed(1)}s)`);
       logEvent(orgId, 'planning.cycle', 'Engine', { planId: plan.id, outcome: 'flagged_for_owner', verdict });
       return;
     }
 
+    console.log(`[engine] planning cycle done — auto-approved (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     this.push({ type: 'plan_approved', orgId, planId: plan.id });
     logEvent(orgId, 'planning.cycle', 'Engine', { planId: plan.id, outcome: 'auto_approved', verdict });
   }
 
   private async handleBriefingCycle(orgId: string): Promise<void> {
+    const start = Date.now();
     const content = await this.ceo.compileBriefing(orgId);
     logEvent(orgId, 'briefing.compiled', 'Engine', { orgId });
 
@@ -163,14 +173,16 @@ export class OrchestrationEngine {
         date: new Date().toISOString().split('T')[0],
         htmlContent: briefingToHtml(content),
       });
+      console.log(`[engine] briefing sent via Resend (${((Date.now() - start) / 1000).toFixed(1)}s)`);
       logEvent(orgId, 'briefing.sent', 'Engine', { orgId, method: 'resend' });
     } else {
-      console.log('[engine] briefing compiled but Resend not configured — skipping delivery');
+      console.log(`[engine] briefing compiled — Resend not configured, skipping delivery (${((Date.now() - start) / 1000).toFixed(1)}s)`);
       logEvent(orgId, 'briefing.sent', 'Engine', { orgId, method: 'skipped' });
     }
   }
 
   private async handlePlanApproved(orgId: string, planId: string): Promise<void> {
+    const start = Date.now();
     await approvePlan(planId);
     const dispatchedIds = await this.dispatcher.executePlan(planId);
 
@@ -194,11 +206,13 @@ export class OrchestrationEngine {
           });
         }
       } catch (err) {
+        console.error(`[worker] failed task ${taskId}: ${err instanceof Error ? err.message : String(err)}`);
         try { await applyTransition(taskId, 'FAILED', 'Engine', err instanceof Error ? err.message : 'worker error'); } catch { /* ignore */ }
         logEvent(orgId, 'worker.failed', 'Engine', { taskId, error: err instanceof Error ? err.message : String(err) });
       }
     }
 
+    console.log(`[engine] plan approved — ${dispatchedIds.length} tasks dispatched (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     logEvent(orgId, 'planning.approved', 'Engine', { planId, dispatchedCount: dispatchedIds.length });
   }
 
@@ -206,11 +220,13 @@ export class OrchestrationEngine {
     const task = await getTask(taskId);
     if (!task) return;
 
+    console.log(`[engine] task ${taskId.slice(0, 8)} completed — moving to review`);
     await applyTransition(taskId, 'REVIEW', task.assigned_worker ?? 'Worker-1', 'worker submitted output');
     this.push({ type: 'review_verdict', orgId, taskId });
   }
 
   private async handleReviewVerdict(orgId: string, taskId: string): Promise<void> {
+    const start = Date.now();
     const verdict = await this.reviewer.evaluate(taskId);
 
     logMessage({
@@ -226,16 +242,19 @@ export class OrchestrationEngine {
       await applyTransition(taskId, 'POLISH', 'Reviewer-1', verdict.feedback);
       // Re-dispatch for polish — back to REVIEW after worker resubmits
       // For now, log that polish is needed (worker re-dispatch requires rework context)
+      console.log(`[engine] review done — verdict: POLISH for task ${taskId.slice(0, 8)} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
       logEvent(orgId, 'review.verdict', 'Engine', { taskId, verdict: 'POLISH' });
       return;
     }
 
     // GOOD or EXCELLENT → proceed to judgment
+    console.log(`[engine] review done — verdict: ${verdict.verdict} for task ${taskId.slice(0, 8)} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     await applyTransition(taskId, 'JUDGMENT', 'Reviewer-1', `review passed: ${verdict.verdict}`);
     this.push({ type: 'judge_verdict', orgId, taskId });
   }
 
   private async handleJudgeVerdict(orgId: string, taskId: string): Promise<void> {
+    const start = Date.now();
     const verdict = await this.judge.evaluate(taskId);
 
     logMessage({
@@ -274,6 +293,7 @@ export class OrchestrationEngine {
               });
             }
           } catch (err) {
+            console.error(`[worker] failed task ${ready.id}: ${err instanceof Error ? err.message : String(err)}`);
             try { await applyTransition(ready.id, 'FAILED', 'Engine', 'worker error'); } catch { /* ignore */ }
           }
         }
@@ -284,6 +304,7 @@ export class OrchestrationEngine {
         }
       }
 
+      console.log(`[engine] judge done — verdict: ACCEPT for task ${taskId.slice(0, 8)} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
       logEvent(orgId, 'judge.verdict', 'Engine', { taskId, verdict: 'ACCEPT' });
       return;
     }
@@ -293,30 +314,39 @@ export class OrchestrationEngine {
       const actualState = await applyTransition(taskId, 'REVISION', 'Judge-1', verdict.feedback);
 
       if (actualState === 'ESCALATED') {
+        console.log(`[engine] judge done — verdict: REVISE → auto-escalated for task ${taskId.slice(0, 8)} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
         this.push({ type: 'escalation', orgId, taskId });
       } else {
         // REVISION → back to REVIEW after worker resubmits
+        console.log(`[engine] judge done — verdict: REVISE for task ${taskId.slice(0, 8)} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
         logEvent(orgId, 'judge.verdict', 'Engine', { taskId, verdict: 'REVISE' });
       }
       return;
     }
 
     // ESCALATE
+    console.log(`[engine] judge done — verdict: ESCALATE for task ${taskId.slice(0, 8)} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     await applyTransition(taskId, 'ESCALATED', 'Judge-1', verdict.reason);
     this.push({ type: 'escalation', orgId, taskId });
     logEvent(orgId, 'judge.verdict', 'Engine', { taskId, verdict: 'ESCALATE' });
   }
 
   private async handleEscalation(orgId: string, taskId: string): Promise<void> {
+    const start = Date.now();
+    console.log(`[ceo] starting escalation diagnosis for task ${taskId.slice(0, 8)}...`);
     try {
       const diagnosis = await this.ceo.handleEscalation(taskId);
+      console.log(`[ceo] escalation done — diagnosis: ${diagnosis.type} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
       logEvent(orgId, 'task.escalated', 'Engine', { taskId, diagnosisType: diagnosis.type });
-    } catch {
+    } catch (err) {
+      console.error(`[ceo] escalation failed for task ${taskId.slice(0, 8)}: ${err instanceof Error ? err.message : String(err)}`);
       logEvent(orgId, 'task.escalated', 'Engine', { taskId, error: 'escalation handler not yet implemented' });
     }
   }
 
   private async handleOwnerReply(orgId: string, content: string): Promise<void> {
+    const start = Date.now();
+    console.log('[ceo] starting owner reply parsing...');
     const intent = await this.ceo.handleOwnerReply(orgId, content);
 
     // Store feedback
@@ -349,6 +379,7 @@ export class OrchestrationEngine {
       }
     }
 
+    console.log(`[ceo] owner reply parsed — ${intent.actions.length} actions (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     logEvent(orgId, 'owner.reply', 'Engine', { orgId, actionCount: intent.actions.length });
   }
 
