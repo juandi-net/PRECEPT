@@ -11,6 +11,7 @@ export class JudgeService {
     if (!task.output) throw new Error(`Task ${taskId} has no output — cannot judge`);
 
     const response = await invokeAgent('Judge-1', {
+      orgId: task.org_id,
       model: 'opus',
       systemPrompt: JUDGE_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: buildJudgeMessage(task) }],
@@ -23,7 +24,7 @@ export class JudgeService {
       throw new Error('Judge produced invalid response: missing verdict');
     }
 
-    logEvent('judge.verdict', 'Judge-1', {
+    logEvent(task.org_id, 'judge.verdict', 'Judge-1', {
       taskId,
       verdict: verdict.verdict,
     });

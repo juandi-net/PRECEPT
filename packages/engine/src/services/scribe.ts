@@ -34,6 +34,7 @@ export class ScribeService {
     );
 
     const response = await invokeAgent('Scribe-1', {
+      orgId,
       model: 'sonnet',
       systemPrompt: SCRIBE_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: userMessage }],

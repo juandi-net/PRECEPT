@@ -27,14 +27,15 @@ export class DispatcherService {
         dispatched.push(task.id);
       } catch (err) {
         console.error(`[dispatcher] failed to dispatch task ${task.id}:`, err);
-        logEvent('dispatch.task', 'Dispatcher-1', {
+        logEvent(task.org_id, 'dispatch.task', 'Dispatcher-1', {
           taskId: task.id,
           error: err instanceof Error ? err.message : String(err),
         });
       }
     }
 
-    logEvent('dispatch.plan', 'Dispatcher-1', {
+    const orgId = allTasks[0]?.org_id ?? '';
+    logEvent(orgId, 'dispatch.plan', 'Dispatcher-1', {
       planId,
       totalTasks: allTasks.length,
       dispatchedCount: dispatched.length,
@@ -56,7 +57,7 @@ export class DispatcherService {
     // Transition: QUEUED → DISPATCHED
     await applyTransition(task.id, 'DISPATCHED', 'Dispatcher-1', `assigned to ${workerId}`);
 
-    logEvent('dispatch.task', 'Dispatcher-1', {
+    logEvent(task.org_id, 'dispatch.task', 'Dispatcher-1', {
       taskId: task.id,
       workerId,
       skills,

@@ -107,6 +107,7 @@ describe('OnboardingService', () => {
       expect(result.message).toContain("I'm your new CEO");
       expect(onboardingDb.createSession).toHaveBeenCalled();
       expect(auditDb.logEvent).toHaveBeenCalledWith(
+        expect.any(String),
         'onboarding.session_started',
         'ceo-onboarding',
         expect.any(Object)
@@ -334,6 +335,7 @@ describe('OnboardingService', () => {
 
       // Should log confirmation edits
       expect(auditDb.logEvent).toHaveBeenCalledWith(
+        expect.any(String),
         'onboarding.confirmation_edits',
         'ceo-onboarding',
         expect.objectContaining({

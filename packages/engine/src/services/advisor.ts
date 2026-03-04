@@ -43,6 +43,7 @@ export class AdvisorService {
 
     // 5. Invoke Advisor
     const response = await invokeAgent('Advisor-1', {
+      orgId: plan.org_id,
       model: 'opus',
       systemPrompt: ADVISOR_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: userMessage }],
@@ -58,7 +59,7 @@ export class AdvisorService {
     // 6. Write verdict to DB
     await updateAdvisorVerdict(planId, parsed.verdict, parsed.notes);
 
-    logEvent('planning.advisor', 'Advisor-1', {
+    logEvent(plan.org_id, 'planning.advisor', 'Advisor-1', {
       planId,
       verdict: parsed.verdict,
     });

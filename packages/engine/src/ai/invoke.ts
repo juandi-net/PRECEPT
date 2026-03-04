@@ -3,6 +3,7 @@ import { logEvent } from '../db/audit.js';
 import type { AuditEventType } from '@precept/shared';
 
 export interface InvokeAgentOptions {
+  orgId: string;
   model: 'opus' | 'sonnet';
   systemPrompt: string;
   messages: Array<{ role: 'user' | 'assistant'; content: string }>;
@@ -72,7 +73,7 @@ export async function invokeAgent(
       }
 
       // Fire-and-forget audit log
-      logEvent('ai.call' as AuditEventType, agentId, {
+      logEvent(options.orgId, 'ai.call' as AuditEventType, agentId, {
         model: modelId,
         durationMs,
         tokens: usage,
