@@ -17,9 +17,9 @@ webhooks.post('/resend', async (c) => {
     return c.json({ error: 'No email_id in payload' }, 400);
   }
 
-  // Fetch full email content via Resend API (webhook only has metadata)
+  // Fetch full email content via Resend receiving API (webhook only has metadata)
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const { data: email, error } = await resend.emails.get(emailId);
+  const { data: email, error } = await resend.emails.receiving.get(emailId);
   if (error || !email) {
     return c.json({ error: 'Failed to fetch email content' }, 500);
   }
