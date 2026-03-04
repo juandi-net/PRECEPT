@@ -13,6 +13,7 @@ import { JudgeService } from '../services/judge.js';
 import { ScribeService } from '../services/scribe.js';
 import { getTask, getTasksByPlan, getTasksByState, incrementPolishCount } from '../db/tasks.js';
 import { approvePlan } from '../db/plans.js';
+import { getOrg } from '../db/orgs.js';
 import { logOwnerFeedback } from '../db/owner-feedback.js';
 import { applyTransition } from './state-machine.js';
 import { getDispatchableTasks, checkPhaseCompletion } from './dependency.js';
@@ -196,10 +197,12 @@ export class OrchestrationEngine {
     // Deliver briefing (Resend or log)
     if (process.env.RESEND_API_KEY) {
       const { sendBriefing, briefingToHtml } = await import('../lib/email.js');
+      const org = await getOrg(orgId);
       await sendBriefing({
         to: process.env.OWNER_EMAIL ?? 'owner@org',
-        orgName: orgId,
-        date: new Date().toISOString().split('T')[0],
+        orgName: org?.name ?? orgId,
+        date: new Date(),
+        boardRequestCount: content.board_requests.length,
         htmlContent: briefingToHtml(content),
       });
       console.log(`[engine] briefing sent via Resend (${((Date.now() - start) / 1000).toFixed(1)}s)`);

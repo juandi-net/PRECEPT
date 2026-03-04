@@ -97,6 +97,13 @@ Each PRECEPT org uses its own free Resend account with its own domain. The `rese
 6. Set up inbound webhook: Dashboard > Webhooks > Add Webhook
    - Event: `email.received`
    - Endpoint URL: `https://<your-tunnel-domain>/api/webhooks/resend` (set up in next section)
+7. Enable inbound receiving: Dashboard → Domains → your domain → toggle "Enable Receiving"
+   - This adds MX records for inbound email delivery
+   - If on Cloudflare, click "Auto configure" to add MX records automatically
+   - Without this, replies to briefing emails will bounce with "address not found"
+   - The inbound webhook (configured in step 6) only works after receiving is enabled
+
+Steps 1–5 configure **outbound** sending (briefings from CEO to owner). Steps 6–7 configure **inbound** receiving (owner replies back to CEO). Both are required for the full briefing loop.
 
 Resend webhooks deliver metadata only. The engine calls `resend.emails.get(emailId)` to fetch the full email body.
 

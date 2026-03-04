@@ -10,7 +10,8 @@ const getResendClient = () => {
 export async function sendBriefing(params: {
   to: string;
   orgName: string;
-  date: string;
+  date: Date;
+  boardRequestCount: number;
   htmlContent: string;
 }): Promise<void> {
   const resend = getResendClient();
@@ -21,10 +22,16 @@ export async function sendBriefing(params: {
 
   const fromDomain = process.env.RESEND_FROM_DOMAIN ?? 'mail.rookiesports.org';
 
+  const shortDate = params.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  let subject = `${params.orgName} — Daily Briefing — ${shortDate}`;
+  if (params.boardRequestCount > 0) {
+    subject += ` — ${params.boardRequestCount} Board Request${params.boardRequestCount > 1 ? 's' : ''}`;
+  }
+
   const { error } = await resend.emails.send({
     from: `CEO <ceo@${fromDomain}>`,
     to: params.to,
-    subject: `[${params.orgName}] — Daily Briefing — ${params.date}`,
+    subject,
     html: params.htmlContent,
     replyTo: `ceo@${fromDomain}`,
   });
