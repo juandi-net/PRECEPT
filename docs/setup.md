@@ -26,7 +26,7 @@ Everything that must be installed or available before starting:
 | **Resend account** | Free tier — email send/receive (one account per org) |
 | **Supabase account** | Free tier — Postgres + pgvector database |
 | **Claude Max subscription** | $200/mo — flat-rate AI access |
-| **CLIProxy** | Local proxy for Claude Max, exposes OpenAI-compatible API. See [claude-max-proxy](https://github.com/1rgs/claude-max-proxy) |
+| **CLIProxy** | Local proxy for Claude Max, exposes OpenAI-compatible API. See [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) |
 
 ---
 
@@ -65,8 +65,8 @@ V0.1 excludes RESTRICTED data, so cloud-hosted Supabase is acceptable. See `secu
 
 1. Clone the CLIProxy repo:
    ```bash
-   git clone https://github.com/1rgs/claude-max-proxy
-   cd claude-max-proxy
+   git clone https://github.com/router-for-me/CLIProxyAPI
+   cd CLIProxyAPI
    ```
 2. Follow the repo's setup instructions to configure with Claude Max session credentials
 3. Start CLIProxy — it runs on port **8317** by default
