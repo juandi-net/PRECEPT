@@ -148,6 +148,7 @@ export class OrchestrationEngine {
     const plan = await this.ceo.planningCycle(orgId);
     const { verdict } = await this.advisor.reviewPlan(plan.id);
 
+    // Only FLAGGED verdicts require owner approval; APPROVED / APPROVED_WITH_CONCERNS auto-approve.
     if (verdict === 'FLAGGED') {
       console.log(`[engine] planning cycle done — flagged for owner (${((Date.now() - start) / 1000).toFixed(1)}s)`);
       logEvent(orgId, 'planning.cycle', 'Engine', { planId: plan.id, outcome: 'flagged_for_owner', verdict });

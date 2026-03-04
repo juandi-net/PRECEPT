@@ -166,7 +166,7 @@ describe('CEOService', () => {
     );
   });
 
-  it('creates tasks with correct phase and spec', async () => {
+  it('creates tasks with planId, phase, and spec', async () => {
     mockInvokeAgent.mockResolvedValue({
       content: '{}',
       parsed: VALID_PLAN_OUTPUT,
@@ -181,11 +181,36 @@ describe('CEOService', () => {
       expect.arrayContaining([
         expect.objectContaining({
           orgId: 'org-1',
+          planId: 'plan-1',
           phase: 1,
           role: 'researcher',
         }),
       ]),
     );
+  });
+
+  it('creates plan before tasks', async () => {
+    const callOrder: string[] = [];
+    (createPlan as ReturnType<typeof vi.fn>).mockImplementation(async () => {
+      callOrder.push('createPlan');
+      return { id: 'plan-1' };
+    });
+    (createTasks as ReturnType<typeof vi.fn>).mockImplementation(async () => {
+      callOrder.push('createTasks');
+      return [{ id: 'uuid-1' }, { id: 'uuid-2' }];
+    });
+
+    mockInvokeAgent.mockResolvedValue({
+      content: '{}',
+      parsed: VALID_PLAN_OUTPUT,
+      usage: { promptTokens: 500, completionTokens: 300, totalTokens: 800 },
+      model: 'test-opus',
+      durationMs: 2000,
+    });
+
+    await ceo.planningCycle('org-1');
+
+    expect(callOrder.indexOf('createPlan')).toBeLessThan(callOrder.indexOf('createTasks'));
   });
 
   it('logs decisions from plan output', async () => {

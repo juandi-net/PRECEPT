@@ -70,7 +70,13 @@ export class CEOService {
       throw new Error('CEO produced invalid plan: missing initiatives');
     }
 
-    // 6. Create initiatives
+    // 6. Create plan record (before tasks so they get plan_id)
+    const plan = await createPlan({
+      orgId,
+      content: planOutput,
+    });
+
+    // 7. Create initiatives and tasks
     for (const init of planOutput.initiatives) {
       const initiative = await createInitiative({
         orgId,
@@ -86,6 +92,7 @@ export class CEOService {
         // First pass: insert with empty depends_on (column is UUID[], can't store plan IDs)
         const taskParams: CreateTaskParams[] = phase.tasks.map((t) => ({
           orgId,
+          planId: plan.id,
           initiativeId: initiative.id,
           phase: phase.phase_number,
           role: t.role,
@@ -134,13 +141,7 @@ export class CEOService {
       });
     }
 
-    // 9. Create plan record
-    const plan = await createPlan({
-      orgId,
-      content: planOutput,
-    });
-
-    // Log messages and audit
+    // 9. Log messages and audit
     logMessage({
       org_id: orgId,
       from_role: 'ceo',
