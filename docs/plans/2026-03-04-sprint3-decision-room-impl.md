@@ -154,12 +154,27 @@ CREATE POLICY "owner_read_orgs" ON orgs
 
 Run: `bunx supabase db push`
 
-**Step 3: Create Supabase Auth user**
+**Step 3: Create Supabase Auth user and link to org (HARD GATE)**
 
-In Supabase Dashboard → Authentication → Users → "Add user":
-- Email: the owner's email
-- Password: a secure password
-- Then update the `orgs` table: `UPDATE orgs SET owner_id = '<auth-user-uuid>' WHERE id = '<org-id>';`
+**This step is a hard gate. If skipped, every RLS policy returns zero rows and the entire frontend shows empty data with no error.**
+
+1. In Supabase Dashboard → Authentication → Users → "Add user":
+   - Email: the owner's email
+   - Password: a secure password
+   - Copy the generated user UUID
+
+2. Link the auth user to the org:
+   ```sql
+   UPDATE orgs SET owner_id = '<auth-user-uuid>' WHERE id = '<org-id>';
+   ```
+
+3. **Verify the link works** before proceeding:
+   ```sql
+   SELECT id, name, owner_id FROM orgs WHERE owner_id IS NOT NULL;
+   ```
+   Expected: One row with the correct `owner_id`. If zero rows, the frontend will return empty results for every query.
+
+**Why this matters:** The RLS function `user_owns_org()` checks `orgs.owner_id = auth.uid()`. If `owner_id` is NULL or doesn't match the auth user's UUID, every `SELECT` through the anon key returns zero rows — silently. There is no error, just empty data everywhere.
 
 **Step 4: Commit**
 
