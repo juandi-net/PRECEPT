@@ -2,6 +2,7 @@ import type { Plan, PlanOutput, BriefingContent, EscalationDiagnosis, OwnerReply
 import { CEO_CHAT_SYSTEM_PROMPT, buildCeoChatMessage } from '../ai/prompts/ceo-chat.js';
 import { insertChatMessage, getChatHistory } from '../db/chat.js';
 import { getRecentEvents } from '../db/audit.js';
+import { createBoardRequest } from '../db/boardRequests.js';
 import { FIELD_LABELS, PRECEPTS_FIELDS, type PreceptsDraft } from '@precept/shared';
 import { invokeAgent } from '../ai/invoke.js';
 import { CEO_PLANNING_SYSTEM_PROMPT, buildCEOPlanningMessage } from '../ai/prompts/ceo-planning.js';
@@ -144,7 +145,12 @@ export class CEOService {
       });
     }
 
-    // 9. Log messages and audit
+    // 9. Create board requests
+    for (const br of planOutput.board_requests ?? []) {
+      await createBoardRequest(orgId, plan.id, br);
+    }
+
+    // 10. Log messages and audit
     logMessage({
       org_id: orgId,
       from_role: 'ceo',
