@@ -432,8 +432,6 @@ export class OrchestrationEngine {
   }
 
   private async handleOwnerReply(orgId: string, content: string): Promise<void> {
-    const start = Date.now();
-    console.log('[ceo] starting owner reply parsing...');
     const intent = await this.ceo.handleOwnerReply(orgId, content);
 
     // Store feedback
@@ -466,8 +464,6 @@ export class OrchestrationEngine {
       }
     }
 
-    console.log(`[ceo] owner reply parsed — ${intent.actions.length} actions (${((Date.now() - start) / 1000).toFixed(1)}s)`);
-    logEvent(orgId, 'owner.reply', 'Engine', { orgId, actionCount: intent.actions.length });
   }
 
   /**
