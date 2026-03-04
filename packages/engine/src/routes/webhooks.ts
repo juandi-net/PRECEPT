@@ -21,6 +21,7 @@ webhooks.post('/resend', async (c) => {
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { data: email, error } = await resend.emails.receiving.get(emailId);
   if (error || !email) {
+    console.error('[webhook] Resend fetch error:', JSON.stringify(error), 'emailId:', emailId);
     return c.json({ error: 'Failed to fetch email content' }, 500);
   }
 
