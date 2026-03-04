@@ -8,3 +8,4 @@ export * from './tasks';
 export * from './plans';
 export * from './evaluation';
 export * from './briefing';
+export * from './chat';

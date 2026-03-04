@@ -33,6 +33,7 @@ export type AuditEventType =
   | 'briefing.sent'
   | 'owner.reply'
   | 'owner.action'
+  | 'ceo.chat'
   | 'memory.stored'
   | 'memory.queried'
   | 'engine.recovery'

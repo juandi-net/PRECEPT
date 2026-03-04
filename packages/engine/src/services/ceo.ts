@@ -1,4 +1,7 @@
 import type { Plan, PlanOutput, BriefingContent, EscalationDiagnosis, OwnerReplyIntent } from '@precept/shared';
+import { CEO_CHAT_SYSTEM_PROMPT, buildCeoChatMessage } from '../ai/prompts/ceo-chat.js';
+import { insertChatMessage, getChatHistory } from '../db/chat.js';
+import { getRecentEvents } from '../db/audit.js';
 import { FIELD_LABELS, PRECEPTS_FIELDS, type PreceptsDraft } from '@precept/shared';
 import { invokeAgent } from '../ai/invoke.js';
 import { CEO_PLANNING_SYSTEM_PROMPT, buildCEOPlanningMessage } from '../ai/prompts/ceo-planning.js';
@@ -277,5 +280,48 @@ export class CEOService {
     console.log(`[ceo] owner reply parsed — ${intent.actions.length} actions (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     logEvent(orgId, 'owner.reply', 'CEO-1', { orgId, actionCount: intent.actions.length });
     return intent;
+  }
+
+  async handleChatMessage(orgId: string, message: string): Promise<string> {
+    const start = Date.now();
+
+    // Store owner message
+    await insertChatMessage(orgId, 'owner', message);
+
+    // Gather context
+    const initiatives = await getActiveInitiatives(orgId);
+    const recentActivity = await getRecentEvents(orgId, 20);
+    const precepts = await getLatestPrecepts(orgId);
+    const chatHistory = await getChatHistory(orgId, 10);
+
+    const preceptsMarkdown = precepts ? preceptsToMarkdown(precepts.content) : '';
+
+    const response = await invokeAgent('CEO-1', {
+      orgId,
+      model: 'opus',
+      systemPrompt: CEO_CHAT_SYSTEM_PROMPT,
+      messages: [{
+        role: 'user',
+        content: buildCeoChatMessage({
+          message,
+          initiatives: initiatives.map(i => ({ id: i.id, name: i.name, status: i.status })),
+          recentActivity: recentActivity.map(e => ({
+            event_type: e.event_type,
+            agent: e.agent_id,
+            created_at: e.created_at,
+          })),
+          precepts: preceptsMarkdown,
+          chatHistory: chatHistory.map(m => ({ role: m.role, content: m.content })),
+        }),
+      }],
+      temperature: 0.4,
+    });
+
+    // Store CEO response
+    await insertChatMessage(orgId, 'ceo', response.content);
+
+    console.log(`[ceo] chat response (${((Date.now() - start) / 1000).toFixed(1)}s)`);
+    logEvent(orgId, 'ceo.chat', 'CEO-1', { ownerMessage: message.substring(0, 100) });
+    return response.content;
   }
 }
