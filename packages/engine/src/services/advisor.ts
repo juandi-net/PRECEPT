@@ -19,6 +19,9 @@ function preceptsToMarkdown(content: PreceptsDraft): string {
 
 export class AdvisorService {
   async reviewPlan(planId: string): Promise<{ verdict: AdvisorVerdict; notes: string }> {
+    const start = Date.now();
+    console.log('[advisor] reviewing plan...');
+
     // 1. Load the plan
     const plan = await getPlan(planId);
     if (!plan) throw new Error(`Plan not found: ${planId}`);
@@ -64,6 +67,7 @@ export class AdvisorService {
       verdict: parsed.verdict,
     });
 
+    console.log(`[advisor] done — verdict: ${parsed.verdict} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     return { verdict: parsed.verdict, notes: parsed.notes };
   }
 }

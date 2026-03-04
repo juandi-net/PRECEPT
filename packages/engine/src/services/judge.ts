@@ -6,6 +6,9 @@ import { logEvent } from '../db/audit.js';
 
 export class JudgeService {
   async evaluate(taskId: string): Promise<JudgeVerdict> {
+    const start = Date.now();
+    console.log(`[judge] evaluating task ${taskId.slice(0, 8)}...`);
+
     const task = await getTask(taskId);
     if (!task) throw new Error(`Task not found: ${taskId}`);
     if (!task.output) throw new Error(`Task ${taskId} has no output — cannot judge`);
@@ -29,6 +32,7 @@ export class JudgeService {
       verdict: verdict.verdict,
     });
 
+    console.log(`[judge] done — verdict: ${verdict.verdict} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     return verdict;
   }
 }

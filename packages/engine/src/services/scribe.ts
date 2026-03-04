@@ -8,6 +8,9 @@ import { logMessage } from '../db/messages.js';
 
 export class ScribeService {
   async compressContext(orgId: string): Promise<InternalMessage> {
+    const start = Date.now();
+    console.log('[scribe] starting context gathering...');
+
     const [auditEntries, initiatives, lessons] = await Promise.all([
       getRecentEvents(orgId, 50),
       getActiveInitiatives(orgId),
@@ -62,6 +65,7 @@ export class ScribeService {
       payload: message.payload,
     });
 
+    console.log(`[scribe] done (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     return message;
   }
 }

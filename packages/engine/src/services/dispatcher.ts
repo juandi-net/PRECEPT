@@ -10,6 +10,9 @@ export class DispatcherService {
    * Returns IDs of tasks that were dispatched.
    */
   async executePlan(planId: string): Promise<string[]> {
+    const start = Date.now();
+    console.log('[dispatcher] assigning tasks...');
+
     // 1. Get all tasks for this plan
     const allTasks = await getTasksByPlan(planId);
     if (allTasks.length === 0) return [];
@@ -41,6 +44,7 @@ export class DispatcherService {
       dispatchedCount: dispatched.length,
     });
 
+    console.log(`[dispatcher] done — ${dispatched.length} tasks dispatched (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     return dispatched;
   }
 
