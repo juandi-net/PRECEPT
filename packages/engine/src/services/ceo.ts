@@ -54,6 +54,7 @@ export class CEOService {
 
     // 5. Invoke CEO
     const response = await invokeAgent('CEO-1', {
+      orgId,
       model: 'opus',
       systemPrompt: CEO_PLANNING_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: userMessage }],
@@ -146,7 +147,7 @@ export class CEOService {
       payload: { planId: plan.id },
     });
 
-    logEvent('planning.cycle', 'CEO-1', {
+    logEvent(orgId, 'planning.cycle', 'CEO-1', {
       planId: plan.id,
       initiativeCount: planOutput.initiatives.length,
       taskCount: planOutput.initiatives.reduce(
@@ -163,6 +164,7 @@ export class CEOService {
     if (!task) throw new Error(`Task not found: ${taskId}`);
 
     const response = await invokeAgent('CEO-1', {
+      orgId: task.org_id,
       model: 'opus',
       systemPrompt: CEO_ESCALATION_SYSTEM_PROMPT,
       messages: [{
@@ -183,7 +185,7 @@ export class CEOService {
       throw new Error('CEO produced invalid escalation diagnosis');
     }
 
-    logEvent('task.escalated', 'CEO-1', { taskId, diagnosisType: diagnosis.type });
+    logEvent(task.org_id, 'task.escalated', 'CEO-1', { taskId, diagnosisType: diagnosis.type });
     return diagnosis;
   }
 
@@ -199,6 +201,7 @@ export class CEOService {
     );
 
     const response = await invokeAgent('CEO-1', {
+      orgId,
       model: 'opus',
       systemPrompt: CEO_BRIEFING_SYSTEM_PROMPT,
       messages: [{
@@ -226,7 +229,7 @@ export class CEOService {
       throw new Error('CEO produced invalid briefing content');
     }
 
-    logEvent('briefing.compiled', 'CEO-1', { orgId });
+    logEvent(orgId, 'briefing.compiled', 'CEO-1', { orgId });
     return content;
   }
 
@@ -240,6 +243,7 @@ export class CEOService {
     );
 
     const response = await invokeAgent('CEO-1', {
+      orgId,
       model: 'opus',
       systemPrompt: CEO_REPLY_PARSING_SYSTEM_PROMPT,
       messages: [{
@@ -259,7 +263,7 @@ export class CEOService {
       throw new Error('CEO produced invalid reply intent');
     }
 
-    logEvent('owner.reply', 'CEO-1', { orgId, actionCount: intent.actions.length });
+    logEvent(orgId, 'owner.reply', 'CEO-1', { orgId, actionCount: intent.actions.length });
     return intent;
   }
 }

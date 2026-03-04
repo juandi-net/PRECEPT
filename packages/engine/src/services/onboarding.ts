@@ -22,6 +22,7 @@ const __dirname = join(fileURLToPath(import.meta.url), '..');
 const MONOREPO_ROOT = join(__dirname, '..', '..', '..', '..');
 
 const AGENT_ID = 'ceo-onboarding';
+const ORG_ID = process.env.DEFAULT_ORG_ID ?? 'onboarding';
 
 interface CEOResponse {
   message: string;
@@ -59,7 +60,7 @@ export class OnboardingService {
       extractionTracker: ceoResponse.updatedTracker,
     });
 
-    await auditDb.logEvent('onboarding.session_started', AGENT_ID, {
+    await auditDb.logEvent(ORG_ID, 'onboarding.session_started', AGENT_ID, {
       sessionId: session.id,
     });
 
@@ -105,7 +106,7 @@ export class OnboardingService {
       extractionTracker: ceoResponse.updatedTracker,
     });
 
-    await auditDb.logEvent('onboarding.message_sent', AGENT_ID, {
+    await auditDb.logEvent(ORG_ID, 'onboarding.message_sent', AGENT_ID, {
       sessionId,
       phase: ceoResponse.updatedTracker.currentPhase,
     });
@@ -148,7 +149,7 @@ export class OnboardingService {
       }
     }
 
-    await auditDb.logEvent('onboarding.confirmation_edits', AGENT_ID, {
+    await auditDb.logEvent(ORG_ID, 'onboarding.confirmation_edits', AGENT_ID, {
       sessionId,
       contentChanges,
       stateChanges,
@@ -163,8 +164,8 @@ export class OnboardingService {
       completedAt: new Date().toISOString(),
     });
 
-    await auditDb.logEvent('onboarding.session_completed', AGENT_ID, { sessionId });
-    await auditDb.logEvent('precepts.created', AGENT_ID, {
+    await auditDb.logEvent(ORG_ID, 'onboarding.session_completed', AGENT_ID, { sessionId });
+    await auditDb.logEvent(ORG_ID, 'precepts.created', AGENT_ID, {
       preceptsId: precepts.id,
       sessionId,
     });
@@ -208,7 +209,7 @@ export class OnboardingService {
     const updated = [...(session.contextDocuments ?? []), ...newDocs];
     await onboardingDb.updateSession(sessionId, { contextDocuments: updated });
 
-    await auditDb.logEvent('onboarding.documents_added', AGENT_ID, {
+    await auditDb.logEvent(ORG_ID, 'onboarding.documents_added', AGENT_ID, {
       sessionId,
       filenames: newDocs.map((d) => d.filename),
     });
@@ -230,7 +231,7 @@ export class OnboardingService {
       contextDocuments: updated.length > 0 ? updated : null,
     });
 
-    await auditDb.logEvent('onboarding.document_removed', AGENT_ID, {
+    await auditDb.logEvent(ORG_ID, 'onboarding.document_removed', AGENT_ID, {
       sessionId,
       filename: removed.filename,
     });
@@ -265,7 +266,7 @@ export class OnboardingService {
     // 3. JSON preceded/followed by prose text
     const parsed = this.extractCEOResponse(content, currentTracker);
 
-    await auditDb.logEvent('ai.call', AGENT_ID, {
+    await auditDb.logEvent(ORG_ID, 'ai.call', AGENT_ID, {
       model: MODELS.opus,
       purpose: 'onboarding_interview',
       promptMessages: messages,

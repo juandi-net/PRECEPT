@@ -38,6 +38,7 @@ describe('invokeAgent', () => {
     mockCreate.mockResolvedValue(mockResponse('Hello world'));
 
     const result = await invokeAgent('CEO-1', {
+      orgId: 'org-1',
       model: 'opus',
       systemPrompt: 'You are helpful',
       messages: [{ role: 'user', content: 'Hi' }],
@@ -56,6 +57,7 @@ describe('invokeAgent', () => {
     mockCreate.mockResolvedValue(mockResponse('```json\n{"key": "value"}\n```'));
 
     const result = await invokeAgent('CEO-1', {
+      orgId: 'org-1',
       model: 'opus',
       systemPrompt: 'Return JSON',
       messages: [{ role: 'user', content: 'Give me JSON' }],
@@ -72,6 +74,7 @@ describe('invokeAgent', () => {
       .mockResolvedValue(mockResponse('Success'));
 
     const result = await invokeAgent('Worker-1', {
+      orgId: 'org-1',
       model: 'sonnet',
       systemPrompt: 'test',
       messages: [{ role: 'user', content: 'test' }],
@@ -86,6 +89,7 @@ describe('invokeAgent', () => {
 
     await expect(
       invokeAgent('Worker-1', {
+        orgId: 'org-1',
         model: 'sonnet',
         systemPrompt: 'test',
         messages: [{ role: 'user', content: 'test' }],
@@ -100,12 +104,14 @@ describe('invokeAgent', () => {
     mockCreate.mockResolvedValue(mockResponse('OK'));
 
     await invokeAgent('CEO-1', {
+      orgId: 'org-1',
       model: 'opus',
       systemPrompt: 'test',
       messages: [{ role: 'user', content: 'test' }],
     });
 
     expect(logEvent).toHaveBeenCalledWith(
+      'org-1',
       'ai.call',
       'CEO-1',
       expect.objectContaining({

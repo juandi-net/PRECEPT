@@ -11,6 +11,7 @@ export class ReviewerService {
     if (!task.output) throw new Error(`Task ${taskId} has no output — cannot review`);
 
     const response = await invokeAgent('Reviewer-1', {
+      orgId: task.org_id,
       model: 'opus',
       systemPrompt: REVIEWER_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: buildReviewerMessage(task) }],
@@ -23,7 +24,7 @@ export class ReviewerService {
       throw new Error('Reviewer produced invalid response: missing verdict');
     }
 
-    logEvent('review.verdict', 'Reviewer-1', {
+    logEvent(task.org_id, 'review.verdict', 'Reviewer-1', {
       taskId,
       verdict: verdict.verdict,
     });

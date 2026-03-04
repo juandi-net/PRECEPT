@@ -84,7 +84,7 @@ export class OrchestrationEngine {
     // QUEUED tasks → re-dispatch
     const queued = await getTasksByState(orgId, 'QUEUED');
     for (const task of queued) {
-      logEvent('task.transition', 'Engine', { taskId: task.id, recovery: 'QUEUED → re-dispatch' });
+      logEvent(orgId, 'task.transition', 'Engine', { taskId: task.id, recovery: 'QUEUED → re-dispatch' });
       // Push plan_approved won't work (it expects PLANNED tasks).
       // Transition QUEUED → DISPATCHED → IN_PROGRESS manually.
       try {
@@ -116,7 +116,7 @@ export class OrchestrationEngine {
         try {
           await applyTransition(task.id, 'FAILED', 'Engine', 'recovery timeout');
         } catch { /* may not be in valid state */ }
-        logEvent('task.transition', 'Engine', { taskId: task.id, recovery: 'timeout → FAILED' });
+        logEvent(orgId, 'task.transition', 'Engine', { taskId: task.id, recovery: 'timeout → FAILED' });
       }
     }
 
@@ -132,7 +132,7 @@ export class OrchestrationEngine {
       this.push({ type: 'judge_verdict', orgId, taskId: task.id });
     }
 
-    logEvent('planning.cycle', 'Engine', { recovery: 'scan_complete', orgId });
+    logEvent(orgId, 'planning.cycle', 'Engine', { recovery: 'scan_complete', orgId });
   }
 
   // --- Handlers ---
@@ -142,17 +142,17 @@ export class OrchestrationEngine {
     const { verdict } = await this.advisor.reviewPlan(plan.id);
 
     if (verdict === 'FLAGGED') {
-      logEvent('planning.cycle', 'Engine', { planId: plan.id, outcome: 'flagged_for_owner', verdict });
+      logEvent(orgId, 'planning.cycle', 'Engine', { planId: plan.id, outcome: 'flagged_for_owner', verdict });
       return;
     }
 
     this.push({ type: 'plan_approved', orgId, planId: plan.id });
-    logEvent('planning.cycle', 'Engine', { planId: plan.id, outcome: 'auto_approved', verdict });
+    logEvent(orgId, 'planning.cycle', 'Engine', { planId: plan.id, outcome: 'auto_approved', verdict });
   }
 
   private async handleBriefingCycle(orgId: string): Promise<void> {
     const content = await this.ceo.compileBriefing(orgId);
-    logEvent('briefing.compiled', 'Engine', { orgId });
+    logEvent(orgId, 'briefing.compiled', 'Engine', { orgId });
 
     // Deliver briefing (Resend or log)
     if (process.env.RESEND_API_KEY) {
@@ -163,10 +163,10 @@ export class OrchestrationEngine {
         date: new Date().toISOString().split('T')[0],
         htmlContent: briefingToHtml(content),
       });
-      logEvent('briefing.sent', 'Engine', { orgId, method: 'resend' });
+      logEvent(orgId, 'briefing.sent', 'Engine', { orgId, method: 'resend' });
     } else {
       console.log('[engine] briefing compiled but Resend not configured — skipping delivery');
-      logEvent('briefing.sent', 'Engine', { orgId, method: 'skipped' });
+      logEvent(orgId, 'briefing.sent', 'Engine', { orgId, method: 'skipped' });
     }
   }
 
@@ -195,11 +195,11 @@ export class OrchestrationEngine {
         }
       } catch (err) {
         try { await applyTransition(taskId, 'FAILED', 'Engine', err instanceof Error ? err.message : 'worker error'); } catch { /* ignore */ }
-        logEvent('worker.failed', 'Engine', { taskId, error: err instanceof Error ? err.message : String(err) });
+        logEvent(orgId, 'worker.failed', 'Engine', { taskId, error: err instanceof Error ? err.message : String(err) });
       }
     }
 
-    logEvent('planning.approved', 'Engine', { planId, dispatchedCount: dispatchedIds.length });
+    logEvent(orgId, 'planning.approved', 'Engine', { planId, dispatchedCount: dispatchedIds.length });
   }
 
   private async handleTaskCompleted(orgId: string, taskId: string): Promise<void> {
@@ -226,7 +226,7 @@ export class OrchestrationEngine {
       await applyTransition(taskId, 'POLISH', 'Reviewer-1', verdict.feedback);
       // Re-dispatch for polish — back to REVIEW after worker resubmits
       // For now, log that polish is needed (worker re-dispatch requires rework context)
-      logEvent('review.verdict', 'Engine', { taskId, verdict: 'POLISH' });
+      logEvent(orgId, 'review.verdict', 'Engine', { taskId, verdict: 'POLISH' });
       return;
     }
 
@@ -284,7 +284,7 @@ export class OrchestrationEngine {
         }
       }
 
-      logEvent('judge.verdict', 'Engine', { taskId, verdict: 'ACCEPT' });
+      logEvent(orgId, 'judge.verdict', 'Engine', { taskId, verdict: 'ACCEPT' });
       return;
     }
 
@@ -296,7 +296,7 @@ export class OrchestrationEngine {
         this.push({ type: 'escalation', orgId, taskId });
       } else {
         // REVISION → back to REVIEW after worker resubmits
-        logEvent('judge.verdict', 'Engine', { taskId, verdict: 'REVISE' });
+        logEvent(orgId, 'judge.verdict', 'Engine', { taskId, verdict: 'REVISE' });
       }
       return;
     }
@@ -304,15 +304,15 @@ export class OrchestrationEngine {
     // ESCALATE
     await applyTransition(taskId, 'ESCALATED', 'Judge-1', verdict.reason);
     this.push({ type: 'escalation', orgId, taskId });
-    logEvent('judge.verdict', 'Engine', { taskId, verdict: 'ESCALATE' });
+    logEvent(orgId, 'judge.verdict', 'Engine', { taskId, verdict: 'ESCALATE' });
   }
 
   private async handleEscalation(orgId: string, taskId: string): Promise<void> {
     try {
       const diagnosis = await this.ceo.handleEscalation(taskId);
-      logEvent('task.escalated', 'Engine', { taskId, diagnosisType: diagnosis.type });
+      logEvent(orgId, 'task.escalated', 'Engine', { taskId, diagnosisType: diagnosis.type });
     } catch {
-      logEvent('task.escalated', 'Engine', { taskId, error: 'escalation handler not yet implemented' });
+      logEvent(orgId, 'task.escalated', 'Engine', { taskId, error: 'escalation handler not yet implemented' });
     }
   }
 
@@ -335,21 +335,21 @@ export class OrchestrationEngine {
           this.push({ type: 'plan_approved', orgId, planId: action.target_id });
           break;
         case 'hold':
-          logEvent('owner.action', 'Engine', { orgId, action: 'hold', targetId: action.target_id });
+          logEvent(orgId, 'owner.action', 'Engine', { orgId, action: 'hold', targetId: action.target_id });
           break;
         case 'pivot':
-          logEvent('owner.action', 'Engine', { orgId, action: 'pivot', targetId: action.target_id, direction: action.direction });
+          logEvent(orgId, 'owner.action', 'Engine', { orgId, action: 'pivot', targetId: action.target_id, direction: action.direction });
           break;
         case 'free_text':
-          logEvent('owner.action', 'Engine', { orgId, action: 'free_text' });
+          logEvent(orgId, 'owner.action', 'Engine', { orgId, action: 'free_text' });
           break;
         case 'clarify':
-          logEvent('owner.action', 'Engine', { orgId, action: 'clarify', question: action.question });
+          logEvent(orgId, 'owner.action', 'Engine', { orgId, action: 'clarify', question: action.question });
           break;
       }
     }
 
-    logEvent('owner.reply', 'Engine', { orgId, actionCount: intent.actions.length });
+    logEvent(orgId, 'owner.reply', 'Engine', { orgId, actionCount: intent.actions.length });
   }
 
   private async drain(): Promise<void> {

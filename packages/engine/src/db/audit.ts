@@ -2,6 +2,7 @@ import { db } from './client.js';
 import type { AuditEventType } from '@precept/shared';
 
 export async function logEvent(
+  orgId: string,
   eventType: AuditEventType,
   agent: string,
   detail?: Record<string, unknown>,
@@ -10,6 +11,7 @@ export async function logEvent(
   const { error } = await db
     .from('audit_log')
     .insert({
+      org_id: orgId,
       event_type: eventType,
       agent,
       detail: detail ?? null,

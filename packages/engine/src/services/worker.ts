@@ -13,6 +13,7 @@ export class WorkerService {
     const agentId = task.assigned_worker ?? `Worker-${task.role}-1`;
 
     const response = await invokeAgent(agentId, {
+      orgId: task.org_id,
       model: 'sonnet',
       systemPrompt: buildWorkerSystemPrompt(task),
       messages: [{ role: 'user', content: buildWorkerUserMessage(task) }],
@@ -28,7 +29,7 @@ export class WorkerService {
     // Store output in task record
     await updateTaskOutput(task.id, parsed);
 
-    logEvent('worker.complete', agentId, {
+    logEvent(task.org_id, 'worker.complete', agentId, {
       taskId: task.id,
       confidence: parsed.confidence,
       hasFlag: parsed.flag !== null,

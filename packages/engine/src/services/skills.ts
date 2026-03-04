@@ -9,6 +9,7 @@ import { SEED_SKILLS } from '@precept/shared';
 import type { PreceptsDraft, SkillIndex, SeedSkillSpec } from '@precept/shared';
 
 const AGENT_ID = 'seed-skill-generator';
+const ORG_ID = process.env.DEFAULT_ORG_ID ?? 'onboarding';
 // Resolve monorepo root from this file's location (packages/engine/src/services/skills.ts → ../../../../)
 const __dirname = join(fileURLToPath(import.meta.url), '..');
 const MONOREPO_ROOT = join(__dirname, '..', '..', '..', '..');
@@ -30,7 +31,7 @@ export class SeedSkillService {
       rawContent = response.choices[0]?.message?.content ?? '';
       const latencyMs = Date.now() - startMs;
 
-      await auditDb.logEvent('ai.call', AGENT_ID, {
+      await auditDb.logEvent(ORG_ID, 'ai.call', AGENT_ID, {
         model: MODELS.sonnet,
         purpose: 'seed_skill_generation',
         latencyMs,
@@ -38,7 +39,7 @@ export class SeedSkillService {
         tokensOut: response.usage?.completion_tokens ?? null,
       }, response.usage?.total_tokens ?? undefined);
     } catch (err: any) {
-      await auditDb.logEvent('skills.seed_failed', AGENT_ID, {
+      await auditDb.logEvent(ORG_ID, 'skills.seed_failed', AGENT_ID, {
         error: err.message,
         stage: 'llm_call',
       });
@@ -51,7 +52,7 @@ export class SeedSkillService {
     try {
       skillContents = this.parseResponse(rawContent);
     } catch (err: any) {
-      await auditDb.logEvent('skills.seed_failed', AGENT_ID, {
+      await auditDb.logEvent(ORG_ID, 'skills.seed_failed', AGENT_ID, {
         error: err.message,
         stage: 'parse',
         rawContent,
@@ -73,12 +74,12 @@ export class SeedSkillService {
         const skill = await this.writeSkill(spec, content);
         created.push(skill);
 
-        await auditDb.logEvent('skills.seed_generated', AGENT_ID, {
+        await auditDb.logEvent(ORG_ID, 'skills.seed_generated', AGENT_ID, {
           skillName: spec.name,
           filePath: skill.filePath,
         });
       } catch (err: any) {
-        await auditDb.logEvent('skills.seed_failed', AGENT_ID, {
+        await auditDb.logEvent(ORG_ID, 'skills.seed_failed', AGENT_ID, {
           error: err.message,
           stage: 'write',
           skillName: spec.name,
