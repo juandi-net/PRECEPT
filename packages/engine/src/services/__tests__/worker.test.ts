@@ -47,6 +47,7 @@ function makeTask(overrides?: Partial<Task>): Task {
     skills_loaded: [],
     depends_on: [],
     revision_count: 0,
+    polish_count: 0,
     created_at: new Date().toISOString(),
     updated_at: null,
     ...overrides,
@@ -131,15 +132,92 @@ describe('WorkerService', () => {
     expect(result.flag).toBe('Sensor requires import license — may delay timeline');
   });
 
-  it('throws when invokeAgent returns invalid output', async () => {
+  it('falls back to largest string field when output field is missing', async () => {
     mockInvokeAgent.mockResolvedValue({
       content: '{}',
-      parsed: { bad: 'data' },
+      parsed: { result: 'Detailed analysis of the sensor hardware' },
       usage: { promptTokens: 300, completionTokens: 200, totalTokens: 500 },
       model: 'test-sonnet',
       durationMs: 1000,
     });
 
-    await expect(worker.execute(makeTask())).rejects.toThrow('Worker produced invalid output');
+    const result = await worker.execute(makeTask());
+
+    expect(result.output).toBe('Detailed analysis of the sensor hardware');
+    expect(result.confidence).toBe('low');
+  });
+
+  it('falls back to raw content when JSON parsing fails', async () => {
+    const rawContent = 'Here is a detailed analysis of the sensor hardware with SPI interface specifications and pin diagrams.';
+    mockInvokeAgent.mockResolvedValue({
+      content: rawContent,
+      parsed: undefined,
+      usage: { promptTokens: 300, completionTokens: 200, totalTokens: 500 },
+      model: 'test-sonnet',
+      durationMs: 1000,
+    });
+
+    const result = await worker.execute(makeTask());
+
+    expect(result.output).toBe(rawContent);
+    expect(result.confidence).toBe('low');
+    expect(result.notes).toContain('raw LLM response');
+  });
+
+  it('throws when no fallback content is available', async () => {
+    mockInvokeAgent.mockResolvedValue({
+      content: '',
+      parsed: { count: 42 },
+      usage: { promptTokens: 300, completionTokens: 200, totalTokens: 500 },
+      model: 'test-sonnet',
+      durationMs: 1000,
+    });
+
+    await expect(worker.execute(makeTask())).rejects.toThrow('missing output field');
+  });
+
+  describe('rework', () => {
+    it('invokes agent with rework context from reviewer', async () => {
+      mockInvokeAgent.mockResolvedValue({
+        content: '{}',
+        parsed: VALID_OUTPUT,
+        usage: { promptTokens: 400, completionTokens: 200, totalTokens: 600 },
+        model: 'test-sonnet',
+        durationMs: 1500,
+      });
+
+      const task = makeTask({ output: { ...VALID_OUTPUT, output: 'Original work' } });
+      await worker.rework(task, 'Needs more detail on pin layout', 'reviewer');
+
+      expect(mockInvokeAgent).toHaveBeenCalledWith(
+        'Worker-researcher-1',
+        expect.objectContaining({
+          model: 'sonnet',
+          jsonMode: true,
+        }),
+      );
+
+      // Verify rework message includes feedback
+      const callArgs = mockInvokeAgent.mock.calls[0][1];
+      expect(callArgs.messages[0].content).toContain('Rework Required');
+      expect(callArgs.messages[0].content).toContain('Needs more detail on pin layout');
+      expect(callArgs.messages[0].content).toContain('Original work');
+    });
+
+    it('stores revised output via updateTaskOutput', async () => {
+      const revisedOutput: WorkerOutput = { ...VALID_OUTPUT, output: 'Revised work product' };
+      mockInvokeAgent.mockResolvedValue({
+        content: '{}',
+        parsed: revisedOutput,
+        usage: { promptTokens: 400, completionTokens: 200, totalTokens: 600 },
+        model: 'test-sonnet',
+        durationMs: 1500,
+      });
+
+      const task = makeTask();
+      await worker.rework(task, 'Fix the analysis', 'judge');
+
+      expect(updateTaskOutput).toHaveBeenCalledWith('task-1', revisedOutput);
+    });
   });
 });

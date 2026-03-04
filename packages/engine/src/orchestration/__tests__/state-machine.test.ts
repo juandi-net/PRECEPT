@@ -57,6 +57,7 @@ describe('applyTransition', () => {
     vi.mocked(getTask).mockResolvedValue({
       id: 'task-1', org_id: 'org-1', state: 'PLANNED',
       revision_count: 0,
+    polish_count: 0,
     } as any);
 
     const result = await applyTransition('task-1', 'QUEUED', 'Dispatcher-1', 'deps met');
@@ -77,6 +78,7 @@ describe('applyTransition', () => {
     vi.mocked(getTask).mockResolvedValue({
       id: 'task-1', org_id: 'org-1', state: 'PLANNED',
       revision_count: 0,
+    polish_count: 0,
     } as any);
 
     await expect(
@@ -88,6 +90,7 @@ describe('applyTransition', () => {
     vi.mocked(getTask).mockResolvedValue({
       id: 'task-1', org_id: 'org-1', state: 'JUDGMENT',
       revision_count: 0,
+    polish_count: 0,
     } as any);
     vi.mocked(incrementRevisionCount).mockResolvedValue(1);
 

@@ -43,6 +43,7 @@ export interface Task {
   skills_loaded: string[];
   depends_on: string[];
   revision_count: number;
+  polish_count: number;
   created_at: string;
   updated_at: string | null;
 }

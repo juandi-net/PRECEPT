@@ -11,13 +11,15 @@ import { WorkerService } from '../services/worker.js';
 import { ReviewerService } from '../services/reviewer.js';
 import { JudgeService } from '../services/judge.js';
 import { ScribeService } from '../services/scribe.js';
-import { getTask, getTasksByPlan, getTasksByState } from '../db/tasks.js';
+import { getTask, getTasksByPlan, getTasksByState, incrementPolishCount } from '../db/tasks.js';
 import { approvePlan } from '../db/plans.js';
 import { logOwnerFeedback } from '../db/owner-feedback.js';
 import { applyTransition } from './state-machine.js';
 import { getDispatchableTasks, checkPhaseCompletion } from './dependency.js';
 import { logEvent } from '../db/audit.js';
 import { logMessage } from '../db/messages.js';
+
+const MAX_REWORK_ATTEMPTS = 3;
 
 export type EngineEvent =
   | { type: 'planning_cycle'; orgId: string }
@@ -131,6 +133,30 @@ export class OrchestrationEngine {
       this.push({ type: 'review_verdict', orgId, taskId: task.id });
     }
 
+    // POLISH tasks → transition back to REVIEW and re-invoke reviewer
+    const inPolish = await getTasksByState(orgId, 'POLISH');
+    for (const task of inPolish) {
+      try {
+        await applyTransition(task.id, 'REVIEW', 'Engine', 'recovery from POLISH');
+        this.push({ type: 'review_verdict', orgId, taskId: task.id });
+        logEvent(orgId, 'task.transition', 'Engine', { taskId: task.id, recovery: 'POLISH → REVIEW' });
+      } catch (err) {
+        console.error(`[engine] recovery POLISH→REVIEW failed for task ${task.id}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+
+    // REVISION tasks → transition back to REVIEW and re-invoke reviewer
+    const inRevision = await getTasksByState(orgId, 'REVISION');
+    for (const task of inRevision) {
+      try {
+        await applyTransition(task.id, 'REVIEW', 'Engine', 'recovery from REVISION');
+        this.push({ type: 'review_verdict', orgId, taskId: task.id });
+        logEvent(orgId, 'task.transition', 'Engine', { taskId: task.id, recovery: 'REVISION → REVIEW' });
+      } catch (err) {
+        console.error(`[engine] recovery REVISION→REVIEW failed for task ${task.id}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+
     // JUDGMENT with no subsequent action → re-invoke judge
     const inJudgment = await getTasksByState(orgId, 'JUDGMENT');
     for (const task of inJudgment) {
@@ -210,6 +236,8 @@ export class OrchestrationEngine {
         console.error(`[worker] failed task ${taskId}: ${err instanceof Error ? err.message : String(err)}`);
         try { await applyTransition(taskId, 'FAILED', 'Engine', err instanceof Error ? err.message : 'worker error'); } catch { /* ignore */ }
         logEvent(orgId, 'worker.failed', 'Engine', { taskId, error: err instanceof Error ? err.message : String(err) });
+        // Check for more dispatchable tasks even after failure
+        await this.dispatchReadyTasks(orgId, taskId);
       }
     }
 
@@ -241,10 +269,52 @@ export class OrchestrationEngine {
 
     if (verdict.verdict === 'POLISH') {
       await applyTransition(taskId, 'POLISH', 'Reviewer-1', verdict.feedback);
-      // Re-dispatch for polish — back to REVIEW after worker resubmits
-      // For now, log that polish is needed (worker re-dispatch requires rework context)
-      console.log(`[engine] review done — verdict: POLISH for task ${taskId.slice(0, 8)} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
-      logEvent(orgId, 'review.verdict', 'Engine', { taskId, verdict: 'POLISH' });
+
+      // Check polish-specific rework limit (separate from judge revision_count)
+      const polishCount = await incrementPolishCount(taskId);
+      if (polishCount >= MAX_REWORK_ATTEMPTS) {
+        console.log(`[engine] review done — POLISH but max rework attempts (${MAX_REWORK_ATTEMPTS}) reached for task ${taskId.slice(0, 8)}, escalating`);
+        await applyTransition(taskId, 'REVIEW', 'Engine', 'max polish attempts reached');
+        await applyTransition(taskId, 'JUDGMENT', 'Engine', 'forced to judgment after max polish');
+        await applyTransition(taskId, 'ESCALATED', 'Engine', `exceeded ${MAX_REWORK_ATTEMPTS} rework attempts`);
+        this.push({ type: 'escalation', orgId, taskId });
+        logEvent(orgId, 'review.verdict', 'Engine', { taskId, verdict: 'POLISH', escalated: true, polishCount });
+        return;
+      }
+
+      // Worker rework with reviewer feedback
+      const task = await getTask(taskId);
+      if (!task) return;
+
+      try {
+        const output = await this.worker.rework(task, verdict.feedback, 'reviewer');
+        // Transition POLISH → REVIEW and re-invoke reviewer
+        await applyTransition(taskId, 'REVIEW', 'Engine', 'rework complete, re-reviewing');
+        this.push({ type: 'review_verdict', orgId, taskId });
+
+        if (output.flag) {
+          logMessage({
+            org_id: orgId,
+            from_role: 'worker',
+            from_agent_id: task.assigned_worker ?? 'Worker-1',
+            to_role: 'ceo',
+            message_type: 'flag',
+            payload: { taskId, flag: output.flag },
+          });
+        }
+      } catch (err) {
+        console.error(`[worker] rework failed for task ${taskId.slice(0, 8)}: ${err instanceof Error ? err.message : String(err)}`);
+        // Failed rework — transition through to FAILED
+        try {
+          await applyTransition(taskId, 'REVIEW', 'Engine', 'rework failed');
+          await applyTransition(taskId, 'JUDGMENT', 'Engine', 'rework failed — escalating');
+          await applyTransition(taskId, 'ESCALATED', 'Engine', 'worker rework error');
+          this.push({ type: 'escalation', orgId, taskId });
+        } catch { /* transition may fail if state already changed */ }
+      }
+
+      console.log(`[engine] review done — verdict: POLISH for task ${taskId.slice(0, 8)}, polish #${polishCount} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
+      logEvent(orgId, 'review.verdict', 'Engine', { taskId, verdict: 'POLISH', polishCount });
       return;
     }
 
@@ -269,41 +339,7 @@ export class OrchestrationEngine {
 
     if (verdict.verdict === 'ACCEPT') {
       await applyTransition(taskId, 'ACCEPTED', 'Judge-1', verdict.assessment);
-
-      // Check for newly dispatchable tasks and phase completion
-      const task = await getTask(taskId);
-      if (task?.plan_id) {
-        const allTasks = await getTasksByPlan(task.plan_id);
-        const newlyReady = getDispatchableTasks(allTasks);
-        for (const ready of newlyReady) {
-          // Dispatch via plan_approved won't work for individual tasks.
-          // Manually dispatch.
-          try {
-            await this.dispatcher['dispatchTask'](ready);
-            await applyTransition(ready.id, 'IN_PROGRESS', 'Engine', 'worker starting');
-            const output = await this.worker.execute(ready);
-            this.push({ type: 'task_completed', orgId, taskId: ready.id });
-            if (output.flag) {
-              logMessage({
-                org_id: orgId,
-                from_role: 'worker',
-                from_agent_id: ready.assigned_worker ?? 'Worker-1',
-                to_role: 'ceo',
-                message_type: 'flag',
-                payload: { taskId: ready.id, flag: output.flag },
-              });
-            }
-          } catch (err) {
-            console.error(`[worker] failed task ${ready.id}: ${err instanceof Error ? err.message : String(err)}`);
-            try { await applyTransition(ready.id, 'FAILED', 'Engine', 'worker error'); } catch { /* ignore */ }
-          }
-        }
-
-        // Check phase completion
-        if (task.initiative_id && checkPhaseCompletion(allTasks, task.phase)) {
-          this.push({ type: 'phase_completed', orgId, initiativeId: task.initiative_id, phase: task.phase });
-        }
-      }
+      await this.dispatchReadyTasks(orgId, taskId);
 
       console.log(`[engine] judge done — verdict: ACCEPT for task ${taskId.slice(0, 8)} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
       logEvent(orgId, 'judge.verdict', 'Engine', { taskId, verdict: 'ACCEPT' });
@@ -317,8 +353,37 @@ export class OrchestrationEngine {
       if (actualState === 'ESCALATED') {
         console.log(`[engine] judge done — verdict: REVISE → auto-escalated for task ${taskId.slice(0, 8)} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
         this.push({ type: 'escalation', orgId, taskId });
+        logEvent(orgId, 'judge.verdict', 'Engine', { taskId, verdict: 'REVISE', escalated: true });
       } else {
-        // REVISION → back to REVIEW after worker resubmits
+        // REVISION → worker rework → REVIEW → full review/judge cycle
+        const task = await getTask(taskId);
+        if (!task) return;
+
+        try {
+          const output = await this.worker.rework(task, verdict.feedback, 'judge');
+          await applyTransition(taskId, 'REVIEW', 'Engine', 'rework complete, re-reviewing');
+          this.push({ type: 'review_verdict', orgId, taskId });
+
+          if (output.flag) {
+            logMessage({
+              org_id: orgId,
+              from_role: 'worker',
+              from_agent_id: task.assigned_worker ?? 'Worker-1',
+              to_role: 'ceo',
+              message_type: 'flag',
+              payload: { taskId, flag: output.flag },
+            });
+          }
+        } catch (err) {
+          console.error(`[worker] rework failed for task ${taskId.slice(0, 8)}: ${err instanceof Error ? err.message : String(err)}`);
+          try {
+            await applyTransition(taskId, 'REVIEW', 'Engine', 'rework failed');
+            await applyTransition(taskId, 'JUDGMENT', 'Engine', 'rework failed — escalating');
+            await applyTransition(taskId, 'ESCALATED', 'Engine', 'worker rework error');
+            this.push({ type: 'escalation', orgId, taskId });
+          } catch { /* transition may fail if state already changed */ }
+        }
+
         console.log(`[engine] judge done — verdict: REVISE for task ${taskId.slice(0, 8)} (${((Date.now() - start) / 1000).toFixed(1)}s)`);
         logEvent(orgId, 'judge.verdict', 'Engine', { taskId, verdict: 'REVISE' });
       }
@@ -382,6 +447,45 @@ export class OrchestrationEngine {
 
     console.log(`[ceo] owner reply parsed — ${intent.actions.length} actions (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     logEvent(orgId, 'owner.reply', 'Engine', { orgId, actionCount: intent.actions.length });
+  }
+
+  /**
+   * After a task reaches a terminal state, check its plan for newly dispatchable tasks
+   * and phase completion. This creates a rolling dispatch window.
+   */
+  private async dispatchReadyTasks(orgId: string, taskId: string): Promise<void> {
+    const task = await getTask(taskId);
+    if (!task?.plan_id) return;
+
+    const allTasks = await getTasksByPlan(task.plan_id);
+    const newlyReady = getDispatchableTasks(allTasks);
+
+    for (const ready of newlyReady) {
+      try {
+        await this.dispatcher['dispatchTask'](ready);
+        await applyTransition(ready.id, 'IN_PROGRESS', 'Engine', 'worker starting');
+        const output = await this.worker.execute(ready);
+        this.push({ type: 'task_completed', orgId, taskId: ready.id });
+        if (output.flag) {
+          logMessage({
+            org_id: orgId,
+            from_role: 'worker',
+            from_agent_id: ready.assigned_worker ?? 'Worker-1',
+            to_role: 'ceo',
+            message_type: 'flag',
+            payload: { taskId: ready.id, flag: output.flag },
+          });
+        }
+      } catch (err) {
+        console.error(`[worker] failed task ${ready.id}: ${err instanceof Error ? err.message : String(err)}`);
+        try { await applyTransition(ready.id, 'FAILED', 'Engine', 'worker error'); } catch { /* ignore */ }
+      }
+    }
+
+    // Check phase completion
+    if (task.initiative_id && checkPhaseCompletion(allTasks, task.phase)) {
+      this.push({ type: 'phase_completed', orgId, initiativeId: task.initiative_id, phase: task.phase });
+    }
   }
 
   private async drain(): Promise<void> {

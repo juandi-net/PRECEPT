@@ -21,6 +21,7 @@ export type AuditEventType =
   | 'dispatch.task'
   | 'worker.start'
   | 'worker.complete'
+  | 'worker.rework_complete'
   | 'worker.failed'
   | 'review.start'
   | 'review.verdict'

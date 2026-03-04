@@ -49,6 +49,7 @@ const sampleTaskRow = {
   skills_loaded: [],
   depends_on: [],
   revision_count: 0,
+    polish_count: 0,
   created_at: '2026-03-03T00:00:00Z',
   updated_at: null,
 };

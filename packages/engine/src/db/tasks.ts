@@ -27,6 +27,7 @@ function mapTask(row: Record<string, unknown>): Task {
     skills_loaded: (row.skills_loaded as string[]) ?? [],
     depends_on: (row.depends_on as string[]) ?? [],
     revision_count: row.revision_count as number,
+    polish_count: (row.polish_count as number) ?? 0,
     created_at: row.created_at as string,
     updated_at: (row.updated_at as string) ?? null,
   };
@@ -167,6 +168,20 @@ export async function incrementRevisionCount(taskId: string): Promise<number> {
     .eq('id', taskId);
 
   if (error) throw new Error(`Failed to increment revision count: ${error.message}`);
+  return newCount;
+}
+
+export async function incrementPolishCount(taskId: string): Promise<number> {
+  const task = await getTask(taskId);
+  if (!task) throw new Error(`Task not found: ${taskId}`);
+
+  const newCount = task.polish_count + 1;
+  const { error } = await db
+    .from('tasks')
+    .update({ polish_count: newCount, updated_at: new Date().toISOString() })
+    .eq('id', taskId);
+
+  if (error) throw new Error(`Failed to increment polish count: ${error.message}`);
   return newCount;
 }
 

@@ -34,6 +34,7 @@ vi.mock('../../db/tasks.js', () => ({
     skills_loaded: [],
     depends_on: [],
     revision_count: 0,
+    polish_count: 0,
     created_at: new Date().toISOString(),
     updated_at: null,
   }),
@@ -157,6 +158,7 @@ describe('ReviewerService', () => {
       skills_loaded: [],
       depends_on: [],
       revision_count: 0,
+    polish_count: 0,
       created_at: new Date().toISOString(),
       updated_at: null,
     });

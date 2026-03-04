@@ -34,6 +34,8 @@ vi.mock('../../db/tasks.js', () => ({
   updateTaskWorker: vi.fn(),
   updateTaskOutput: vi.fn(),
   logTransition: vi.fn(),
+  incrementRevisionCount: vi.fn().mockResolvedValue(1),
+  incrementPolishCount: vi.fn().mockResolvedValue(1),
 }));
 
 vi.mock('../../db/plans.js', () => ({
@@ -75,6 +77,7 @@ function makeTask(overrides: Partial<Task>): Task {
     skills_loaded: [],
     depends_on: [],
     revision_count: 0,
+    polish_count: 0,
     created_at: new Date().toISOString(),
     updated_at: null,
     ...overrides,
@@ -132,6 +135,40 @@ describe('OrchestrationEngine — recovery', () => {
 
     expect(pushSpy).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'review_verdict', taskId: 'r-1' }),
+    );
+  });
+
+  it('recovers POLISH tasks by transitioning to REVIEW', async () => {
+    mockGetTasksByState.mockImplementation(async (_orgId: string, state: string) => {
+      if (state === 'POLISH') return [makeTask({ id: 'p-1', state: 'POLISH' })];
+      return [];
+    });
+
+    const pushSpy = vi.spyOn(engine, 'push');
+
+    await engine.recoverFromRestart('org-1');
+
+    const { applyTransition } = await import('../state-machine.js');
+    expect(applyTransition).toHaveBeenCalledWith('p-1', 'REVIEW', 'Engine', 'recovery from POLISH');
+    expect(pushSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'review_verdict', taskId: 'p-1' }),
+    );
+  });
+
+  it('recovers REVISION tasks by transitioning to REVIEW', async () => {
+    mockGetTasksByState.mockImplementation(async (_orgId: string, state: string) => {
+      if (state === 'REVISION') return [makeTask({ id: 'rv-1', state: 'REVISION' })];
+      return [];
+    });
+
+    const pushSpy = vi.spyOn(engine, 'push');
+
+    await engine.recoverFromRestart('org-1');
+
+    const { applyTransition } = await import('../state-machine.js');
+    expect(applyTransition).toHaveBeenCalledWith('rv-1', 'REVIEW', 'Engine', 'recovery from REVISION');
+    expect(pushSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'review_verdict', taskId: 'rv-1' }),
     );
   });
 

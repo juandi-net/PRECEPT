@@ -17,6 +17,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     skills_loaded: [],
     depends_on: [],
     revision_count: 0,
+    polish_count: 0,
     created_at: '2026-01-01',
     updated_at: null,
     ...overrides,
