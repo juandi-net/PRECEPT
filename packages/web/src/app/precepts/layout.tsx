@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { TopBar } from '@/components/layout/top-bar'
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function PreceptsLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
 
   const { data: org } = await supabase
@@ -22,7 +22,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="flex h-screen flex-col">
       <TopBar orgName={org?.name ?? 'PRECEPT'} mission={mission} />
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-auto p-6">
         {children}
       </main>
     </div>

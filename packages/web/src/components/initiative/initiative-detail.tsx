@@ -1,13 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRealtime } from '@/hooks/use-realtime'
 import { getInitiativeHealth } from '@/lib/health'
 import { TaskTable } from './task-table'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
 interface Initiative {
@@ -68,14 +65,6 @@ export function InitiativeDetail({ initiative }: { initiative: Initiative }) {
 
   return (
     <div className="space-y-6">
-      {/* Back link */}
-      <Link href="/dashboard">
-        <Button variant="ghost" size="sm" className="gap-1">
-          <ArrowLeft className="h-4 w-4" />
-          Back to Dashboard
-        </Button>
-      </Link>
-
       {/* Initiative Header */}
       <div>
         <div className="flex items-center gap-3">

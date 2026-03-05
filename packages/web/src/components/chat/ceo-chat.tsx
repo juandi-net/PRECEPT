@@ -85,7 +85,7 @@ export function CeoChat({ orgId }: { orgId: string }) {
   }
 
   return (
-    <div className="flex h-[calc(100vh-10rem)] flex-col">
+    <div className="flex h-full flex-col">
       <ScrollArea className="flex-1 px-4">
         <div className="space-y-4 py-4">
           {messages.map((msg) => {
