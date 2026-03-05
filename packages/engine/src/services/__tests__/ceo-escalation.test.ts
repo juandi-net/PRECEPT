@@ -60,9 +60,18 @@ vi.mock('../../db/messages.js', () => ({
   logMessage: vi.fn(),
 }));
 
+vi.mock('../../db/chat.js', () => ({
+  insertChatMessage: vi.fn(),
+  getChatHistory: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock('../../db/audit.js', () => ({
   logEvent: vi.fn(),
   getRecentEvents: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock('../../db/boardRequests.js', () => ({
+  createBoardRequest: vi.fn(),
 }));
 
 vi.mock('../scribe.js', () => ({
@@ -111,24 +120,19 @@ describe('CEOService — briefing', () => {
     ceo = new CEOService();
   });
 
-  it('compileBriefing returns BriefingContent', async () => {
+  it('compileBriefing returns plain-text letter', async () => {
     mockInvokeAgent.mockResolvedValue({
-      content: '{}',
-      parsed: {
-        board_requests: [],
-        exceptions: [],
-        results: { north_star: null, initiatives: [] },
-        forward_look: 'Continue sensor research.',
-      },
+      content: 'The sensor research is complete. See the results ([view](/inspect/task/abc)).',
+      parsed: null,
       usage: { promptTokens: 300, completionTokens: 200, totalTokens: 500 },
       model: 'test-opus',
       durationMs: 1000,
     });
 
-    const content = await ceo.compileBriefing('org-1');
+    const letter = await ceo.compileBriefing('org-1');
 
-    expect(content.forward_look).toBe('Continue sensor research.');
-    expect(content.board_requests).toEqual([]);
+    expect(typeof letter).toBe('string');
+    expect(letter).toContain('sensor research');
   });
 });
 

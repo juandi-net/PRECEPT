@@ -1,34 +1,5 @@
-export interface BriefingBoardRequest {
-  number: number;
-  request: string;
-  context: string;
-  urgency: string;
-  fallback: string;
-}
-
-export interface BriefingException {
-  description: string;
-  severity: 'critical' | 'warning' | 'info';
-  initiative: string | null;
-}
-
-export interface BriefingInitiativeSummary {
-  name: string;
-  status: string;
-  outcome_summary: string;
-}
-
-export interface BriefingResults {
-  north_star: string | null;
-  initiatives: BriefingInitiativeSummary[];
-}
-
-export interface BriefingContent {
-  board_requests: BriefingBoardRequest[];
-  exceptions: BriefingException[];
-  results: BriefingResults;
-  forward_look: string;
-}
+/** The CEO's letter — plain text with markdown links. */
+export type BriefingLetter = string;
 
 export type OwnerReplyAction =
   | { type: 'approve'; target_id: string }

@@ -1,67 +1,39 @@
 import { describe, it, expect } from 'vitest';
-import type { BriefingContent } from '@precept/shared';
-import { briefingToHtml } from '../email.js';
+import { letterToHtml } from '../email.js';
 
-const SAMPLE_CONTENT: BriefingContent = {
-  board_requests: [
-    {
-      number: 1,
-      request: 'Approve sensor purchase',
-      context: 'PoC requires IMU sensor',
-      urgency: 'high',
-      fallback: 'Delays hardware testing by 1 week',
-    },
-  ],
-  exceptions: [
-    {
-      severity: 'warning',
-      description: 'Worker flagged import license concern',
-      initiative: 'Sensor PoC',
-    },
-  ],
-  results: {
-    north_star: 'Sensor basketball PoC',
-    initiatives: [
-      {
-        name: 'Sensor PoC',
-        status: 'Phase 1: Hardware Setup — 35% complete',
-        outcome_summary: 'Pin diagram complete, data capture app in progress',
-      },
-    ],
-  },
-  forward_look: 'Complete data capture app, begin calibration testing.',
-};
+describe('letterToHtml', () => {
+  it('wraps letter in styled HTML', () => {
+    const html = letterToHtml('Hello, this is your CEO.', 'Acme Corp');
 
-describe('briefingToHtml', () => {
-  it('generates HTML with all sections', () => {
-    const html = briefingToHtml(SAMPLE_CONTENT);
-
-    expect(html).toContain('Board Requests');
-    expect(html).toContain('Approve sensor purchase');
-    expect(html).toContain('Exceptions');
-    expect(html).toContain('import license concern');
-    expect(html).toContain('Results');
-    expect(html).toContain('Sensor PoC');
-    expect(html).toContain('Forward Look');
-    expect(html).toContain('calibration testing');
+    expect(html).toContain('Acme Corp');
+    expect(html).toContain('Hello, this is your CEO.');
+    expect(html).toContain("font-family: 'Times New Roman'");
   });
 
-  it('handles empty board requests', () => {
-    const html = briefingToHtml({
-      ...SAMPLE_CONTENT,
-      board_requests: [],
-    });
+  it('converts markdown links to <a> tags', () => {
+    const html = letterToHtml(
+      'The report is ready ([view](/inspect/task/abc123)).',
+      'Acme Corp'
+    );
 
-    expect(html).not.toContain('Board Requests');
-    expect(html).toContain('Results');
+    expect(html).toContain('<a href="/inspect/task/abc123"');
+    expect(html).toContain('>view</a>');
   });
 
-  it('handles empty exceptions', () => {
-    const html = briefingToHtml({
-      ...SAMPLE_CONTENT,
-      exceptions: [],
-    });
+  it('handles multiple links', () => {
+    const html = letterToHtml(
+      'See [report](/inspect/task/1) and [plan](/inspect/initiative/2).',
+      'Test Org'
+    );
 
-    expect(html).not.toContain('Exceptions');
+    expect(html).toContain('<a href="/inspect/task/1"');
+    expect(html).toContain('<a href="/inspect/initiative/2"');
+  });
+
+  it('handles letter with no links', () => {
+    const html = letterToHtml('Everything is running smoothly.', 'Test Org');
+
+    expect(html).not.toContain('<a ');
+    expect(html).toContain('Everything is running smoothly.');
   });
 });

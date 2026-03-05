@@ -47,9 +47,18 @@ vi.mock('../../db/messages.js', () => ({
   logMessage: vi.fn(),
 }));
 
+vi.mock('../../db/chat.js', () => ({
+  insertChatMessage: vi.fn(),
+  getChatHistory: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock('../../db/audit.js', () => ({
   logEvent: vi.fn(),
   getRecentEvents: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock('../../db/boardRequests.js', () => ({
+  createBoardRequest: vi.fn(),
 }));
 
 vi.mock('../scribe.js', () => ({
