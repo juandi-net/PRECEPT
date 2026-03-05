@@ -12,6 +12,7 @@ describe('buildMessages', () => {
   };
 
   const draft: PreceptsDraft = {
+    mission_statement: null,
     identity: { name: 'identity', content: 'A SaaS company', state: 'confirmed', notes: null },
     product_service: null, stage: null, success_definition: null, resources: null,
     constraints: null, competitive_landscape: null, history: null,

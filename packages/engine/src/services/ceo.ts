@@ -202,6 +202,9 @@ export class CEOService {
       throw new Error('CEO produced invalid escalation diagnosis');
     }
 
+    // Store escalation as a letter visible in The Interface
+    await insertChatMessage(task.org_id, 'ceo', diagnosis.reasoning, 'escalation');
+
     return diagnosis;
   }
 
@@ -242,7 +245,7 @@ export class CEOService {
     });
 
     // Store letter in chat history
-    await insertChatMessage(orgId, 'ceo', response.content);
+    await insertChatMessage(orgId, 'ceo', response.content, 'briefing');
 
     console.log(`[ceo] briefing compiled (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     logEvent(orgId, 'briefing.compiled', 'CEO-1', { orgId });
@@ -289,7 +292,7 @@ export class CEOService {
     const start = Date.now();
 
     // Store owner message
-    await insertChatMessage(orgId, 'owner', message);
+    await insertChatMessage(orgId, 'owner', message, 'owner');
 
     // Gather context
     const initiatives = await getActiveInitiatives(orgId);
@@ -321,7 +324,7 @@ export class CEOService {
     });
 
     // Store CEO response
-    await insertChatMessage(orgId, 'ceo', response.content);
+    await insertChatMessage(orgId, 'ceo', response.content, 'response');
 
     console.log(`[ceo] chat response (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     logEvent(orgId, 'ceo.chat', 'CEO-1', { ownerMessage: message.substring(0, 100) });

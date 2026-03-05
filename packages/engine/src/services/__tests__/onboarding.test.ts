@@ -274,6 +274,7 @@ describe('OnboardingService', () => {
   describe('completeSession', () => {
     it('creates precepts from edited draft and logs confirmation edits', async () => {
       const ceoDraft = {
+        mission_statement: null,
         identity: {
           name: 'identity' as const,
           content: 'Original CEO content',

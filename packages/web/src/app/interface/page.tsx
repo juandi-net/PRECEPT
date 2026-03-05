@@ -34,14 +34,31 @@ export default async function InterfacePage() {
 
   if (!org) redirect('/onboarding')
 
-  const { data: latestMessage } = await supabase
+  // Get latest proactive CEO letter (briefing or escalation)
+  const { data: latestLetter } = await supabase
     .from('ceo_chat_messages')
     .select('content, created_at')
     .eq('org_id', org.id)
     .eq('role', 'ceo')
+    .in('type', ['briefing', 'escalation'])
     .order('created_at', { ascending: false })
     .limit(1)
     .single()
+
+  // Get latest owner message to check if they've responded
+  const { data: latestOwnerMsg } = await supabase
+    .from('ceo_chat_messages')
+    .select('created_at')
+    .eq('org_id', org.id)
+    .eq('role', 'owner')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  // Show letter only if it exists and owner hasn't responded after it
+  const ownerResponded = latestLetter && latestOwnerMsg
+    && new Date(latestOwnerMsg.created_at) > new Date(latestLetter.created_at)
+  const latestMessage = ownerResponded ? null : latestLetter
 
   const { data: precepts } = await supabase
     .from('precepts')
