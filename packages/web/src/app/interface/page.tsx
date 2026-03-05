@@ -65,7 +65,7 @@ export default async function InterfacePage() {
       <div className="interface-header">
         <span><strong>{org.name.toUpperCase()}</strong></span>
         {mission && (
-          <span className="interface-mission"><strong>{mission.toUpperCase()}</strong></span>
+          <span className="interface-mission"><strong>{mission}</strong></span>
         )}
         <span><strong>{dateStr}</strong></span>
       </div>
