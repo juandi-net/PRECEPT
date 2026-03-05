@@ -123,13 +123,14 @@ export function NewsTicker({ orgId }: { orgId: string }) {
   const [items, setItems] = useState<TickerItem[]>([])
 
   useEffect(() => {
-    fetchTickerItems(orgId).then(setItems)
-
-    const interval = setInterval(() => {
-      fetchTickerItems(orgId).then(setItems)
-    }, 12_000)
-
-    return () => clearInterval(interval)
+    let active = true
+    const load = () =>
+      fetchTickerItems(orgId)
+        .then((data) => { if (active) setItems(data) })
+        .catch(() => {})
+    load()
+    const interval = setInterval(load, 12_000)
+    return () => { active = false; clearInterval(interval) }
   }, [orgId])
 
   const tickerContent = useMemo(() => [...items, ...items], [items])
