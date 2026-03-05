@@ -3,11 +3,30 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  color: #111;
+  background: #fff;
+}
+
+.interface-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  color: #666;
+  z-index: 10;
+}
+
+.interface-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: #111;
-  background: #fff;
 }
 
 .interface-content {
@@ -22,14 +41,6 @@
   text-transform: uppercase;
   color: #999;
   margin-bottom: 1rem;
-}
-
-.interface-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-  font-size: 0.875rem;
-  color: #666;
 }
 
 .interface-letter {

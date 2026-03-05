@@ -62,20 +62,22 @@ export default async function InterfacePage() {
 
   return (
     <div className="interface-page">
-      <div className="interface-content">
-        {mission && (
-          <div className="interface-mission">{mission}</div>
-        )}
-        <div className="interface-header">
-          <span><strong>{org.name.toUpperCase()}</strong></span>
-          <span><strong>{dateStr}</strong></span>
-        </div>
-        <div
-          className="interface-letter"
-          dangerouslySetInnerHTML={{ __html: letterHtml }}
-        />
+      <div className="interface-header">
+        <span><strong>{org.name.toUpperCase()}</strong></span>
+        <span><strong>{dateStr}</strong></span>
       </div>
-      <InputBox orgId={org.id} />
+      <div className="interface-center">
+        <div className="interface-content">
+          {mission && (
+            <div className="interface-mission">{mission}</div>
+          )}
+          <div
+            className="interface-letter"
+            dangerouslySetInnerHTML={{ __html: letterHtml }}
+          />
+        </div>
+        <InputBox orgId={org.id} />
+      </div>
     </div>
   )
 }
