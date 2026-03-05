@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { format } from 'date-fns'
 import { InputBox } from './input-box'
+import { NewsTicker } from './news-ticker'
 import './interface.css'
 
 function escapeHtml(text: string): string {
@@ -95,6 +96,7 @@ export default async function InterfacePage() {
           <InputBox orgId={org.id} />
         </div>
       </div>
+      <NewsTicker orgId={org.id} />
     </div>
   )
 }
