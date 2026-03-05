@@ -1,4 +1,4 @@
-import type { Plan, PlanOutput, BriefingContent, EscalationDiagnosis, OwnerReplyIntent } from '@precept/shared';
+import type { Plan, PlanOutput, EscalationDiagnosis, OwnerReplyIntent } from '@precept/shared';
 import { CEO_CHAT_SYSTEM_PROMPT, buildCeoChatMessage } from '../ai/prompts/ceo-chat.js';
 import { insertChatMessage, getChatHistory } from '../db/chat.js';
 import { getRecentEvents } from '../db/audit.js';
@@ -205,7 +205,7 @@ export class CEOService {
     return diagnosis;
   }
 
-  async compileBriefing(orgId: string): Promise<BriefingContent> {
+  async compileBriefing(orgId: string): Promise<string> {
     const start = Date.now();
     console.log('[ceo] starting briefing compilation...');
     const contextMsg = await this.scribe.compressContext(orgId);
@@ -239,17 +239,14 @@ export class CEOService {
         }),
       }],
       temperature: 0.5,
-      jsonMode: true,
     });
 
-    const content = response.parsed as unknown as BriefingContent;
-    if (!content?.results) {
-      throw new Error('CEO produced invalid briefing content');
-    }
+    // Store letter in chat history
+    await insertChatMessage(orgId, 'ceo', response.content);
 
     console.log(`[ceo] briefing compiled (${((Date.now() - start) / 1000).toFixed(1)}s)`);
     logEvent(orgId, 'briefing.compiled', 'CEO-1', { orgId });
-    return content;
+    return response.content;
   }
 
   async handleOwnerReply(orgId: string, content: string): Promise<OwnerReplyIntent> {

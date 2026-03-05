@@ -6,7 +6,7 @@ status: approved
 
 # PRECEPT V0.1 — Memory Architecture
 
-How the system remembers. Four memory types serving different purposes, audiences, and lifecycles — plus a fifth type (skills) that stores procedural knowledge separately. See `skills.md` for the full skills architecture, `interface.md` for how memory surfaces to the owner through briefings and the Decision Room.
+How the system remembers. Four memory types serving different purposes, audiences, and lifecycles — plus a fifth type (skills) that stores procedural knowledge separately. See `skills.md` for the full skills architecture, `interface.md` for how memory surfaces to the owner through briefings and The Interface.
 
 Memory is what makes day 30 fundamentally better than day 1. Without it, agents re-do work, lose accumulated knowledge, and produce contradictions. With it, the system self-learns — every interaction compounds. Memory stores what the system knows. Skills (the fifth type) store how the system works. Together they compound: knowledge + procedure.
 
@@ -39,7 +39,7 @@ Append-only record of every action in the system.
 - Every model swap (which agent replaced, why)
 
 **Who writes:** All agents (automatic, logged by the engine at each orchestration step).
-**Who reads:** Scribe (compresses for CEO), Board Advisor (during plan review), Owner (full access via Decision Room).
+**Who reads:** Scribe (compresses for CEO), Board Advisor (during plan review), Owner (full access via inspect pages linked from The Interface).
 
 **Storage:** Postgres table. Append-only — nothing edited or deleted. The audit log itself is classified as RESTRICTED under the security model.
 
@@ -94,7 +94,7 @@ PATTERN: Owner has now rejected small-company targeting twice.
 INFERRED PREFERENCE: Minimum company size = 200 employees for outreach targeting.
 ```
 
-Over time, this teaches the CEO the owner's judgment patterns. Parsed from email replies (via Resend) and Decision Room interactions. This data also drives interface adaptation — briefing density, Board Request frequency, and communication style calibrate to the owner's preferences over time (see `interface.md`, principle 8).
+Over time, this teaches the CEO the owner's judgment patterns. Parsed from email replies (via Resend) and Interface interactions. This data also drives interface adaptation — briefing density, Board Request frequency, and communication style calibrate to the owner's preferences over time (see `interface.md`, principle 8).
 
 **Who writes:** Engine (automatic parsing of owner responses).
 **Who reads:** CEO (learns owner preferences over time), Scribe (includes in CEO context).

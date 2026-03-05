@@ -180,7 +180,7 @@ The `/api/onboarding/complete` endpoint is a fourth engine entry point alongside
 
 **Owner wants to redo the interview:**
 - Before Lock & Launch: owner can restart the conversation at any time. Previous Precepts draft is discarded.
-- After Lock & Launch: owner uses the Precepts editor in the Decision Room to make changes. Major rewrites trigger a Board Request to the CEO for strategic replanning.
+- After Lock & Launch: owner uses the Precepts editor (an inspect page accessible from The Interface) to make changes. Major rewrites trigger a Board Request to the CEO for strategic replanning.
 
 **Owner provides very little information:**
 - The CEO adapts — shorter interview, more fields marked as ? or ○

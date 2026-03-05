@@ -191,19 +191,19 @@ export class OrchestrationEngine {
 
   private async handleBriefingCycle(orgId: string): Promise<void> {
     const start = Date.now();
-    const content = await this.ceo.compileBriefing(orgId);
+    const letter = await this.ceo.compileBriefing(orgId);
     logEvent(orgId, 'briefing.compiled', 'Engine', { orgId });
 
     // Deliver briefing (Resend or log)
     if (process.env.RESEND_API_KEY) {
-      const { sendBriefing, briefingToHtml } = await import('../lib/email.js');
+      const { sendBriefing, letterToHtml } = await import('../lib/email.js');
       const org = await getOrg(orgId);
+      const orgName = org?.name ?? orgId;
       await sendBriefing({
         to: process.env.OWNER_EMAIL ?? 'owner@org',
-        orgName: org?.name ?? orgId,
+        orgName,
         date: new Date(),
-        boardRequestCount: content.board_requests.length,
-        htmlContent: briefingToHtml(content),
+        htmlContent: letterToHtml(letter, orgName),
       });
       console.log(`[engine] briefing sent via Resend (${((Date.now() - start) / 1000).toFixed(1)}s)`);
       logEvent(orgId, 'briefing.sent', 'Engine', { orgId, method: 'resend' });

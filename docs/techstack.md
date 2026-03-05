@@ -14,7 +14,7 @@ Monorepo with separate services. Shared TypeScript types across frontend and eng
 ```
 precept/
   packages/
-    web/        — Next.js (onboarding UI, Decision Room dashboard)
+    web/        — Next.js (onboarding UI, The Interface)
     engine/     — Standalone TS service (orchestration, scheduling, agents)
     shared/     — Types, Precepts schema, constants
 ```
@@ -23,7 +23,7 @@ precept/
 
 | Layer | Choice | Cost | Notes |
 |---|---|---|---|
-| Frontend | Next.js on Vercel | Free | Single-user dashboard + onboarding UI (see `interface.md` for design philosophy) |
+| Frontend | Next.js on Vercel | Free | The Interface + onboarding UI. No component libraries — plain HTML, CSS (Times New Roman), and a textarea. ShadCN retained only for login page. (See `interface.md` for design philosophy) |
 | Engine | Standalone TS service on Mac Mini (local) | Free | Orchestration, scheduling, agent dispatch. Runs as macOS launchd service alongside CLIProxy. |
 | Tunnel | Cloudflare Tunnel (cloudflared) | Free | Exposes engine webhook endpoint to internet for Resend inbound emails. Runs as macOS launchd service. |
 | Database | Supabase (Postgres + pgvector) | Free | Relational data + vector embeddings for role memory |
@@ -69,7 +69,7 @@ All AI calls route through CLIProxy, which proxies the Claude Max subscription v
 │   (Vercel — free)   │            │    (free tier)      │
 │                     │            │                     │
 │ • Onboarding chat   │            │ • Daily briefings   │
-│ • Decision Room     │            │ • Inbound webhook   │
+│ • The Interface     │            │ • Inbound webhook   │
 │ • Precepts editor   │            │   → Tunnel → Engine │
 └────────┬────────────┘            └──────────┬──────────┘
          │ API calls via tunnel               │ Webhook via tunnel
@@ -116,7 +116,7 @@ All AI calls route through CLIProxy, which proxies the Claude Max subscription v
 
 1. **Scheduled cycle:** node-cron triggers → Scribe compresses context from Supabase → CEO plans via CLIProxy (Opus) → Dispatcher routes tasks → Workers execute via CLIProxy (Sonnet) → Reviewer evaluates → Judge evaluates → results stored in Supabase → briefing compiled → sent via Resend
 2. **Owner reply:** owner replies to email → Resend sends `email.received` webhook with metadata → engine calls `resend.emails.get(emailId)` to fetch body → engine updates state in Supabase → may trigger CEO cycle
-3. **Web interaction:** owner uses Next.js UI → API calls via tunnel to engine → engine reads/writes Supabase → real-time updates in dashboard
+3. **Web interaction:** owner uses The Interface → API calls via tunnel to engine → engine reads/writes Supabase → real-time updates
 
 ### Local Services (V0.1)
 

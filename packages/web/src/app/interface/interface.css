@@ -1,0 +1,67 @@
+.interface-page {
+  font-family: 'Times New Roman', Times, serif;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem;
+  color: #111;
+  background: #fff;
+}
+
+.interface-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.interface-letter {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+.interface-letter a {
+  color: #111;
+  text-decoration: underline;
+}
+
+.interface-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.125rem;
+  border: 1px solid #ddd;
+  resize: vertical;
+  margin-top: 2rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.interface-textarea:focus {
+  border-color: #999;
+}
+
+.interface-send {
+  float: right;
+  margin-top: 0.5rem;
+  padding: 0.5rem 1.5rem;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  background: #111;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.interface-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.interface-error {
+  color: #c00;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}

@@ -191,9 +191,9 @@ V0.1 has fewer credentials to manage than the original multi-provider design:
 
 ### Frontend Security
 
-See `interface.md` for the design philosophy behind the Decision Room, briefings, and all owner-facing interaction channels.
+See `interface.md` for the design philosophy behind The Interface, briefings, and all owner-facing interaction channels.
 
-- Owner authentication to the Decision Room (implementation TBD — session-based auth or passkey for single-user system)
+- Owner authentication to The Interface (implementation TBD — session-based auth or passkey for single-user system)
 - HTTPS enforced (Vercel default)
 - API calls from frontend to engine authenticated via session token
 - No direct database access from frontend — all queries go through engine API
