@@ -43,22 +43,38 @@ export default async function InterfacePage() {
     .limit(1)
     .single()
 
+  const { data: precepts } = await supabase
+    .from('precepts')
+    .select('content')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  const missionStatement = (precepts?.content as Record<string, unknown>)
+    ?.identity as Record<string, unknown> | undefined
+  const mission = (missionStatement?.mission_statement as string) ?? null
+
   const letterHtml = latestMessage
     ? parseMarkdownLinks(latestMessage.content)
-    : 'No letters yet. Send a message to get started.'
+    : 'Nothing to report.'
 
   const dateStr = format(new Date(), 'MMMM d, yyyy')
 
   return (
     <div className="interface-page">
-      <div className="interface-header">
-        <span>{org.name.toUpperCase()}</span>
-        <span>{dateStr}</span>
+      <div className="interface-content">
+        {mission && (
+          <div className="interface-mission">{mission}</div>
+        )}
+        <div className="interface-header">
+          <span><strong>{org.name.toUpperCase()}</strong></span>
+          <span><strong>{dateStr}</strong></span>
+        </div>
+        <div
+          className="interface-letter"
+          dangerouslySetInnerHTML={{ __html: letterHtml }}
+        />
       </div>
-      <div
-        className="interface-letter"
-        dangerouslySetInnerHTML={{ __html: letterHtml }}
-      />
       <InputBox orgId={org.id} />
     </div>
   )
