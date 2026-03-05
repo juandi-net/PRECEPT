@@ -12,7 +12,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     state: 'PLANNED',
     role: 'researcher',
     assigned_worker: null,
-    spec: { description: 'test', acceptance_criteria: [], priority: 'medium' },
+    spec: { title: 'Test task', description: 'test', acceptance_criteria: [], priority: 'medium' },
     output: null,
     skills_loaded: [],
     depends_on: [],

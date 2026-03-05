@@ -101,6 +101,7 @@ export class CEOService {
           phase: phase.phase_number,
           role: t.role,
           spec: {
+            title: t.title,
             description: t.description,
             acceptance_criteria: t.acceptance_criteria,
             priority: t.priority,

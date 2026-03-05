@@ -39,6 +39,7 @@ function makeTask(overrides?: Partial<Task>): Task {
     role: 'researcher',
     assigned_worker: 'Worker-researcher-1',
     spec: {
+      title: 'Research IMU sensor hardware',
       description: 'Research IMU sensor hardware',
       acceptance_criteria: ['Pin diagram documented'],
       priority: 'high',

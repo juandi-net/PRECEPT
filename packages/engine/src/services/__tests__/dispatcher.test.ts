@@ -48,6 +48,7 @@ function makeTask(overrides: Partial<Task>): Task {
     role: 'researcher',
     assigned_worker: null,
     spec: {
+      title: 'Research sensor hardware',
       description: 'Research sensors',
       acceptance_criteria: ['Pin diagram documented'],
       priority: 'high',

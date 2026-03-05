@@ -150,6 +150,7 @@ describe('ReviewerService', () => {
       role: 'researcher',
       assigned_worker: 'Worker-researcher-1',
       spec: {
+        title: 'Research task',
         description: 'Research',
         acceptance_criteria: ['Done'],
         priority: 'high',

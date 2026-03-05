@@ -96,8 +96,8 @@ async function fetchTickerItems(orgId: string): Promise<TickerItem[]> {
 
     taskMap = Object.fromEntries(
       (tasks ?? []).map((t: Record<string, unknown>) => {
-        const spec = t.spec as { description?: string }
-        return [t.id as string, { role: t.role as string, description: spec?.description ?? '' }]
+        const spec = t.spec as { title?: string; description?: string }
+        return [t.id as string, { role: t.role as string, description: spec?.title ?? spec?.description ?? '' }]
       })
     )
   }

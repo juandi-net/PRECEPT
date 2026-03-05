@@ -16,6 +16,7 @@ export type TaskRole = 'researcher' | 'coder' | 'writer' | 'analyst' | 'ops';
 export type TaskPriority = 'high' | 'medium' | 'low';
 
 export interface TaskSpec {
+  title: string;
   description: string;
   acceptance_criteria: string[];
   priority: TaskPriority;
