@@ -14,9 +14,10 @@
   right: 0;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 1rem 1.5rem;
   font-size: 0.875rem;
-  color: #666;
+  color: #111;
   z-index: 10;
 }
 
@@ -35,12 +36,8 @@
 }
 
 .interface-mission {
-  text-align: center;
   font-size: 0.75rem;
   letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: #999;
-  margin-bottom: 1rem;
 }
 
 .interface-letter {
