@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "setup": "ln -s \"$CONDUCTOR_ROOT_PATH/.env\" .env && bun install",
+    "setup": "ln -sf \"$CONDUCTOR_ROOT_PATH/.env\" .env && ln -sf ../../.env packages/web/.env && ln -sf ../../.env packages/engine/.env && bun install",
     "run": "bun run dev:engine & bun run dev:web --port $CONDUCTOR_PORT"
   }
 }
