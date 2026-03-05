@@ -82,7 +82,7 @@ async function fetchTickerItems(orgId: string): Promise<TickerItem[]> {
   const taskIds = events
     .map((e: Record<string, unknown>) => {
       const detail = e.detail as Record<string, unknown> | null
-      return detail?.task_id as string | undefined
+      return (detail?.taskId ?? detail?.task_id) as string | undefined
     })
     .filter((id): id is string => !!id)
 
@@ -104,7 +104,7 @@ async function fetchTickerItems(orgId: string): Promise<TickerItem[]> {
 
   return events.map((row: Record<string, unknown>) => {
     const detail = row.detail as Record<string, unknown> | null
-    const taskId = detail?.task_id as string | undefined
+    const taskId = (detail?.taskId ?? detail?.task_id) as string | undefined
     const task = taskId ? taskMap[taskId] : undefined
     return {
       id: row.id as string,
