@@ -4,8 +4,18 @@ import { format } from 'date-fns'
 import { InputBox } from './input-box'
 import './interface.css'
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 function parseMarkdownLinks(text: string): string {
-  return text.replace(
+  // HTML-escape first to prevent XSS from LLM output, then convert markdown links
+  return escapeHtml(text).replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
     '<a href="$2">$1</a>'
   )

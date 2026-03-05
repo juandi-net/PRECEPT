@@ -36,15 +36,24 @@ export async function sendBriefing(params: {
   }
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function letterToHtml(letter: string, orgName: string): string {
-  // Convert markdown links [text](url) to <a> tags
-  const withLinks = letter.replace(
+  // HTML-escape first to prevent XSS from LLM output, then convert markdown links
+  const withLinks = escapeHtml(letter).replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
     '<a href="$2" style="color: #111; text-decoration: underline;">$1</a>'
   );
 
   return `<html><body style="font-family: 'Times New Roman', Times, serif; max-width: 640px; margin: 0 auto; padding: 2rem; color: #111;">
-<p style="color: #666; font-size: 0.875rem;">${orgName}</p>
+<p style="color: #666; font-size: 0.875rem;">${escapeHtml(orgName)}</p>
 <div style="font-size: 1.125rem; line-height: 1.75; white-space: pre-wrap;">${withLinks}</div>
 </body></html>`;
 }
