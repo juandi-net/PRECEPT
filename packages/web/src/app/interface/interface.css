@@ -137,10 +137,15 @@
   border-color: #999;
 }
 
+.interface-response {
+  margin-bottom: 2rem;
+}
+
 .interface-send {
   float: right;
   margin-top: 0.5rem;
   padding: 0.5rem 1.5rem;
+  min-width: 120px;
   font-family: 'Times New Roman', Times, serif;
   font-size: 1rem;
   background: #111;

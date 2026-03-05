@@ -1,13 +1,38 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function parseMarkdownLinks(text: string): string {
+  return escapeHtml(text).replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    '<a href="$2">$1</a>'
+  )
+}
 
 export function InputBox({ orgId }: { orgId: string }) {
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
-  const router = useRouter()
+  const [response, setResponse] = useState<string | null>(null)
+  const [dotCount, setDotCount] = useState(1)
+
+  useEffect(() => {
+    if (!sending) return
+    setDotCount(1)
+    const interval = setInterval(() => {
+      setDotCount((prev) => (prev % 3) + 1)
+    }, 500)
+    return () => clearInterval(interval)
+  }, [sending])
 
   async function handleSend(e?: React.FormEvent) {
     e?.preventDefault()
@@ -28,8 +53,9 @@ export function InputBox({ orgId }: { orgId: string }) {
 
       if (!res.ok) throw new Error('Failed to send message')
 
+      const data = await res.json()
+      setResponse(data.response ?? null)
       setMessage('')
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -46,10 +72,19 @@ export function InputBox({ orgId }: { orgId: string }) {
 
   return (
     <form onSubmit={handleSend}>
+      {response && (
+        <div
+          className="interface-letter interface-response"
+          dangerouslySetInnerHTML={{ __html: parseMarkdownLinks(response) }}
+        />
+      )}
       <textarea
         className="interface-textarea"
         value={message}
-        onChange={(e) => setMessage(e.target.value)}
+        onChange={(e) => {
+          setMessage(e.target.value)
+          if (response) setResponse(null)
+        }}
         onKeyDown={handleKeyDown}
         placeholder=""
         disabled={sending}
@@ -60,7 +95,7 @@ export function InputBox({ orgId }: { orgId: string }) {
         className="interface-send"
         disabled={sending || !message.trim()}
       >
-        {sending ? 'Thinking...' : 'Send'}
+        {sending ? `Thinking${'.'.repeat(dotCount)}` : 'Send'}
       </button>
     </form>
   )
