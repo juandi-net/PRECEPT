@@ -135,7 +135,7 @@ export function NewsTicker({ orgId }: { orgId: string }) {
 
   const tickerContent = useMemo(() => [...items, ...items], [items])
 
-  const duration = Math.max(items.length * 6, 45)
+  const duration = Math.max(items.length * 4, 30)
 
   if (items.length === 0) {
     return (
