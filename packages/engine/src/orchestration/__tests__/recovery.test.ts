@@ -72,7 +72,7 @@ function makeTask(overrides: Partial<Task>): Task {
     state: 'QUEUED',
     role: 'researcher',
     assigned_worker: null,
-    spec: { description: 'Test', acceptance_criteria: ['Done'], priority: 'high' },
+    spec: { title: 'Test task', description: 'Test', acceptance_criteria: ['Done'], priority: 'high' },
     output: null,
     skills_loaded: [],
     depends_on: [],

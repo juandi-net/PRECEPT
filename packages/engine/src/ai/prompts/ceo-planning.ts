@@ -21,7 +21,8 @@ You MUST return valid JSON matching this exact schema. No prose, no explanation 
             {
               "id": "task-1",
               "role": "researcher|writer|coder|analyst|ops",
-              "description": "string — specific action for the worker",
+              "title": "string — short human-readable task name, one sentence max",
+              "description": "string — detailed spec for the worker: what to do, context, constraints",
               "acceptance_criteria": ["string — testable condition"],
               "depends_on": [],
               "skills": [],
@@ -70,6 +71,7 @@ For a basketball sensor company starting from scratch:
             {
               "id": "task-1",
               "role": "researcher",
+              "title": "Research nRF52840 + BMI270 hardware capabilities",
               "description": "Research nRF52840 DK + BMI270 breakout board: pinout, BLE data streaming options, sample rate capabilities for IMU data",
               "acceptance_criteria": ["Pin connection diagram documented", "Maximum achievable sample rate identified", "BLE data format specified"],
               "depends_on": [],
@@ -79,6 +81,7 @@ For a basketball sensor company starting from scratch:
             {
               "id": "task-2",
               "role": "coder",
+              "title": "Build BLE data capture app for IMU streaming",
               "description": "Write BLE data capture app that streams raw accelerometer + gyroscope data to a local file",
               "acceptance_criteria": ["App connects to nRF52840 via BLE", "Captures 6-axis IMU data at >= 100Hz", "Saves timestamped CSV"],
               "depends_on": ["task-1"],

@@ -3,6 +3,7 @@ export type AdvisorVerdict = 'APPROVED' | 'APPROVED_WITH_CONCERNS' | 'FLAGGED';
 export interface PlanTask {
   id: string;
   role: string;
+  title: string;
   description: string;
   acceptance_criteria: string[];
   depends_on: string[];
