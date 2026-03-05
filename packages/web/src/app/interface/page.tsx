@@ -75,8 +75,8 @@ export default async function InterfacePage() {
             className="interface-letter"
             dangerouslySetInnerHTML={{ __html: letterHtml }}
           />
+          <InputBox orgId={org.id} />
         </div>
-        <InputBox orgId={org.id} />
       </div>
     </div>
   )
