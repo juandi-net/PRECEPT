@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRealtime } from '@/hooks/use-realtime'
 import { getInitiativeHealth, type HealthColor } from '@/lib/health'
@@ -26,7 +25,7 @@ const HEALTH_DOT: Record<HealthColor, string> = {
   red: 'bg-red-500',
 }
 
-export function InitiativeCards({ orgId }: { orgId: string }) {
+export function InitiativeCards({ orgId, onSelect }: { orgId: string; onSelect?: (id: string) => void }) {
   const [initiatives, setInitiatives] = useState<Initiative[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
 
@@ -57,7 +56,7 @@ export function InitiativeCards({ orgId }: { orgId: string }) {
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
         Initiatives
       </h2>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3">
         {initiatives.map((init) => {
           const initTasks = tasks.filter(t => t.initiative_id === init.id)
           const health = getInitiativeHealth(initTasks, init.status)
@@ -65,8 +64,8 @@ export function InitiativeCards({ orgId }: { orgId: string }) {
           const total = initTasks.length
 
           return (
-            <Link key={init.id} href={`/dashboard/${init.id}`}>
-              <Card className="cursor-pointer transition-shadow hover:shadow-md">
+            <div key={init.id} onClick={() => onSelect?.(init.id)} className="cursor-pointer">
+              <Card className="transition-shadow hover:shadow-md">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-sm">{init.name}</CardTitle>
@@ -92,7 +91,7 @@ export function InitiativeCards({ orgId }: { orgId: string }) {
                   )}
                 </CardContent>
               </Card>
-            </Link>
+            </div>
           )
         })}
       </div>

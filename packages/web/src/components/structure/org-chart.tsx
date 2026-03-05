@@ -40,7 +40,7 @@ const ORG_EDGES: Array<{ id: string; source: string; target: string }> = [
 const NODE_WIDTH = 160
 const NODE_HEIGHT = 70
 
-export function OrgChart({ orgId }: { orgId: string }) {
+export function OrgChart({ orgId, compact = false }: { orgId: string; compact?: boolean }) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
   const [initialized, setInitialized] = useState(false)
@@ -176,11 +176,11 @@ export function OrgChart({ orgId }: { orgId: string }) {
   }, [])
 
   if (!initialized) {
-    return <div className="flex h-[600px] items-center justify-center text-muted-foreground">Loading org chart...</div>
+    return <div className={`flex ${compact ? 'h-full' : 'h-[600px]'} items-center justify-center text-muted-foreground`}>Loading org chart...</div>
   }
 
   return (
-    <div className="h-[600px] w-full rounded-lg border">
+    <div className={`${compact ? 'h-full' : 'h-[600px]'} w-full rounded-lg border`}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -192,7 +192,7 @@ export function OrgChart({ orgId }: { orgId: string }) {
         proOptions={{ hideAttribution: true }}
       >
         <Background />
-        <Controls />
+        {!compact && <Controls />}
       </ReactFlow>
     </div>
   )
