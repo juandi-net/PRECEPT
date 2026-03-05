@@ -35,7 +35,7 @@ Derived from the most enduring organizational structures in history. Each princi
 ```
 BOARD (Owner / Juandi)
   Mission, values, strategy approval, escalation decisions.
-  Interacts via: daily briefing email, Decision Room web UI.
+  Interacts via: daily briefing email, The Interface (web).
   Time commitment: 30 min/day reviewing briefing + 2-3 decisions.
   │
   ├── BOARD ADVISOR (Opus — weekly)
@@ -195,7 +195,7 @@ GATE 2: JUDGE (Outcome)
 The CEO is always *available*, not always *processing*. It gets invoked for:
 1. **Judge escalation** — worker output failed twice, needs diagnosis
 2. **Phase completion** — initiative phase done, CEO decomposes next phase with fresh data
-3. **Owner input** — reply to briefing or message in Decision Room (highest priority)
+3. **Owner input** — reply to briefing or message in The Interface (highest priority)
 4. **Initiative-level signal** — results aren't matching the hypothesis, needs strategic review
 
 Everything else runs on autopilot within the boundaries the CEO set during weekly planning.
@@ -275,7 +275,7 @@ Each agent's system prompt includes:
 ## Communication Channels
 
 ```
-Board ◄──► CEO            : Briefing email (daily), Decision Room (on-demand), Board Requests (CEO → Board)
+Board ◄──► CEO            : Briefing email (daily), The Interface (on-demand), Board Requests (CEO → Board)
 CEO ──► Dispatcher         : Phased plan with task specs (one-way command)
 Dispatcher ──► Workers     : Task assignments with specs + context (one-way command)
 Workers ──► Reviewer       : Output submission (one-way)

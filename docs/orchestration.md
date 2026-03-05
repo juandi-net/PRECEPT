@@ -8,7 +8,7 @@ status: approved
 
 How the engine runs. Task lifecycle, Dispatcher behavior, context assembly, scheduling, and recovery.
 
-See `structure.md` for the organizational hierarchy and evaluation flow, `skills.md` for procedural memory and the Curator role, `interface.md` for the design philosophy behind briefings, reply parsing, and the Decision Room. This document covers the technical orchestration that implements that structure.
+See `structure.md` for the organizational hierarchy and evaluation flow, `skills.md` for procedural memory and the Curator role, `interface.md` for the design philosophy behind briefings, reply parsing, and The Interface. This document covers the technical orchestration that implements that structure.
 
 ## Engine Architecture
 
@@ -49,7 +49,7 @@ Three entry points feed into a single orchestration core:
 
 **Entry points:**
 1. **Scheduler (node-cron)** — triggers weekly planning cycle, daily briefing compilation
-2. **Webhook handler (HTTP)** — receives Resend inbound email events, Decision Room API calls
+2. **Webhook handler (HTTP)** — receives Resend inbound email events, Interface API calls
 3. **DB listener** — watches for task state changes (worker completions, verdict returns)
 4. **Onboarding completion** — `/api/onboarding/complete` endpoint triggers the first CEO cycle after Lock & Launch (see `onboarding.md`). The Scribe is skipped for this first invocation — no activity to compress yet. CEO receives Precepts only.
 
@@ -235,7 +235,7 @@ Each agent receives only the context relevant to its function. No agent sees eve
    - **APPROVED** → plan stored in Supabase, queued for owner approval
    - **APPROVED WITH CONCERNS** → plan + annotations stored, queued for owner
    - **FLAGGED** → plan + Advisor's concerns sent to owner via Resend
-6. Owner approves (email reply webhook or Decision Room) → Dispatcher receives plan → execution begins
+6. Owner approves (email reply webhook or The Interface) → Dispatcher receives plan → execution begins
 
 ### Daily Briefing
 
@@ -276,7 +276,7 @@ Between scheduled cycles, the CEO is invoked for:
 
 1. **Judge escalation** — worker output failed twice, needs diagnosis
 2. **Phase completion** — all tasks in a phase ACCEPTED, CEO decomposes next phase
-3. **Owner input** — reply to briefing or message in Decision Room (highest priority)
+3. **Owner input** — reply to briefing or message in The Interface (highest priority)
 4. **Initiative signal** — Dispatcher flags stalled initiative (no progress despite active work)
 
 Each trigger invocation runs the Scribe first to ensure the CEO has fresh context.
@@ -299,7 +299,7 @@ This runs as a Supabase function or Scribe invocation — no CEO involvement. Th
 All execution state is in Supabase. The engine is stateless. On restart:
 
 1. **Scheduler** re-initializes cron jobs (next scheduled event fires at the right time)
-2. **Webhook handler** starts listening for Resend and Decision Room events
+2. **Webhook handler** starts listening for Resend and Interface events
 3. **Dispatcher** queries current state from Supabase:
    - Tasks in QUEUED → dispatch them
    - Tasks in DISPATCHED/IN_PROGRESS → check against configurable timeout per task type

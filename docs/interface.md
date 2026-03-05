@@ -9,7 +9,7 @@ version: "0.1"
 
 How a human being interacts with an agentic organization. This can make or break the whole thing.
 
-The interface isn't a dashboard, an email template, or a notification system. It's the coupling between a person and something that has its own momentum, its own dynamics, its own will. A rider doesn't control a horse — they negotiate through a saddle. A helmsman doesn't control the ocean — they mediate between wind and water through a tiller. The interface is the medium through which human intent meets organizational behavior.
+The interface isn't a dashboard, a control panel, or a notification system. It's the coupling between a person and something that has its own momentum, its own dynamics, its own will. A rider doesn't control a horse — they negotiate through a saddle. A helmsman doesn't control the ocean — they mediate between wind and water through a tiller. The interface is the medium through which human intent meets organizational behavior.
 
 See `structure.md` for the organizational hierarchy, `orchestration.md` for the engine, `memory.md` for how the system remembers, `skills.md` for procedural memory, `onboarding.md` for the first interface experience, `security.md` for data classification and access controls, `techstack.md` for the infrastructure that implements this interface.
 
@@ -89,12 +89,12 @@ The WWII cockpit studies proved the inverse: when information comes through a si
 | Channel | Modality | Best For | PRECEPT Implementation |
 |---|---|---|---|
 | **Morning Briefing** | Email (async, text) | Compressed state, decisions needed, progress | Daily email via Resend |
-| **Decision Room** | Web UI (active, visual) | Deep investigation, initiative review, direct CEO conversation | Next.js dashboard |
+| **The Interface** | Web UI (letter + input box) | Latest CEO state, direct conversation, drill-down via inspect links | Next.js, plain HTML/CSS |
 | **Board Requests** | Structured prompts within briefing | Specific actions only the owner can take | Top of briefing, clearly marked |
-| **Precepts Editor** | Direct document editing (web) | Strategic corrections, constraint changes | In Decision Room |
+| **Precepts Editor** | Direct document editing (web) | Strategic corrections, constraint changes | Inspect page via The Interface |
 | **Quick Command** | Short text/message (future) | Urgent overrides, simple approvals | iMessage/mobile (V2+) |
 
-No single channel carries the full interface. The briefing carries the daily rhythm. The Decision Room carries depth. Board Requests carry action items. The Precepts editor carries strategic corrections. Each channel is tuned to a different kind of interaction, just as the rider's seat, legs, and hands are each tuned to a different kind of communication with the horse.
+No single channel carries the full interface. The briefing carries the daily rhythm. The Interface carries depth. Board Requests carry action items. The Precepts editor carries strategic corrections. Each channel is tuned to a different kind of interaction, just as the rider's seat, legs, and hands are each tuned to a different kind of communication with the horse.
 
 The danger is channel collapse — when everything flows through one channel (e.g., all communication via email). That's like riding with only reins. The interface becomes impoverished, the owner loses dimensional awareness, and the system can't distinguish between the owner wanting to steer, slow down, or investigate.
 
@@ -152,7 +152,7 @@ The amputation: direct contact with the work. The owner no longer writes the out
 
 The interface must compensate for this amputation. Specifically:
 
-- **Output gallery in Decision Room:** The owner can see actual deliverables — not just summaries of what was produced, but the artifacts themselves. This maintains connection to the work product.
+- **Output visibility via inspect links:** The owner can see actual deliverables — not just summaries of what was produced, but the artifacts themselves. Inspect links in the CEO's letter lead to initiative detail pages showing full work product. This maintains connection to the texture of the work.
 - **Lesson artifacts in briefings:** The owner receives the *learning*, not just the results. "We discovered that robotics companies respond better to specificity" keeps the owner in contact with the texture of the market.
 - **Chain reasoning visibility:** When the owner drills into any decision, they can trace the full chain — CEO's reasoning, worker's output, Judge's evaluation. The machinery is transparent by default but visible on demand.
 - **Periodic immersion:** The system should occasionally surface raw material — an actual prospect email, an actual research finding, an actual competitive analysis — not just the compressed summary. This is the equivalent of a CEO who sometimes walks the factory floor. It prevents the numbness McLuhan warned about. *[TODO: This principle needs a mechanism — who triggers immersion (CEO judgment during briefing? Scribe function? Scheduled event?), how often, and what selection criteria determine which raw material to surface. Deferred to Sprint 2-3.]*
@@ -169,7 +169,7 @@ Similarly: Eisenhower ran rigorous formal NSC meetings every Thursday for eight 
 
 - **Briefing density:** Does the owner read every word or scan for exceptions? Compress accordingly.
 - **Decision speed:** Does the owner decide immediately or sleep on it? Adjust urgency framing.
-- **Detail appetite:** Does the owner drill into the Decision Room daily or trust the briefing? Weight channels accordingly.
+- **Detail appetite:** Does the owner drill into The Interface daily or trust the briefing? Weight channels accordingly.
 - **Communication style:** Does the owner reply with terse approvals or detailed redirects? Match the grain.
 - **Intervention pattern:** Does the owner steer frequently or set direction and trust? Adjust Board Request frequency.
 
@@ -224,7 +224,7 @@ The interface's job isn't to show the owner raw data (that's Observe). It's to h
 - **Observe:** Scribe collects raw activity data from Supabase
 - **Orient:** CEO assembles context, identifies patterns, frames implications → briefing is oriented, not raw
 - **Decide:** Board Requests present specific decision points with options, tradeoffs, and fallbacks
-- **Act:** Owner's reply mechanisms (email reply, Decision Room) enable action with minimal friction — approve, hold, redirect, all in one response
+- **Act:** Owner's reply mechanisms (email reply, The Interface's input box) enable action with minimal friction — approve, hold, redirect, all in one response
 
 The briefing should never present raw data for the owner to interpret. That forces the owner to do their own Orient phase. The CEO has already oriented — the briefing presents the CEO's orientation with enough transparency for the owner to verify or override it.
 
@@ -295,7 +295,7 @@ FORWARD LOOK
 
 ---
 Reply inline to approve, hold, or redirect any item.
-Full details: [Decision Room link]
+Full details: [The Interface link]
 ```
 
 **Design principles:**
@@ -315,47 +315,44 @@ The owner replies to the email naturally. Resend delivers metadata via webhook; 
 
 The parsing must be forgiving. Owners won't reply in structured format. "Looks good, go ahead but hold off on the cold emails until we have better pricing data" must be interpretable. If ambiguous, the CEO requests clarification in the next briefing rather than guessing.
 
-### Mode 2: Decision Room (On-Demand, Active — Depth Interface)
+### Mode 2: The Interface (On-Demand, Active — Depth Interface)
 
-Web dashboard for when the owner wants to go deeper than the briefing. Not a monitoring screen — structured like talking to your executive team.
+A letter from your CEO. An input box. Inspect links for drill-down. That's it.
 
-**Sections:**
+The Interface is not a dashboard. It's the digital equivalent of sitting across from a competent executive who has prepared a briefing for you. When the owner opens The Interface, they see the CEO's latest letter — a written summary of organizational state, formatted in Times New Roman, rendered as prose. Below the letter is a text input box where the owner can respond, ask questions, or give direction.
 
-**Active Initiatives**
-- Each initiative: status, current phase, progress against plan, key results
-- Click into any initiative for full chain: CEO's reasoning → task specs → worker outputs → evaluations → outcomes
-- Color-coded health: green (on track), yellow (behind or at risk), red (stalled or failing)
+**What the owner sees:**
 
-**Output Gallery**
-- Actual deliverables produced by workers: research reports, outreach drafts, code, analysis
-- The owner sees the work product, not just summaries
-- Compensates for the McLuhan amputation — maintains the owner's connection to the texture of the work
+**The CEO's Letter**
+- Written prose from the CEO agent — not widgets, cards, or charts
+- Covers: current state of initiatives, recent results, pending decisions, exceptions, forward look
+- Board Requests appear inline when the CEO needs owner input
+- Inspect links within the letter lead to deeper pages: initiative detail, audit trail, output artifacts
+- The letter is the CEO's latest state — it updates when the CEO runs its planning or briefing cycle
 
-**CEO Chat**
-- Direct conversation with the CEO agent
-- Ask reasoning questions: "Why did you prioritize outreach over product development?"
-- Give direction: "I want to focus on enterprise customers, not SMBs"
-- Request analysis: "Show me the competitive landscape data"
-- Not a general chatbot — conversations with the CEO about the business
+**The Input Box**
+- A textarea below the letter. The owner types naturally.
+- "Why did you prioritize outreach over product development?"
+- "Focus on enterprise customers, not SMBs"
+- "Approved. Hold off on cold emails until we have better pricing data."
+- Not a general chatbot — conversation with the CEO about the business
+- Messages stored in `ceo_chat_messages`, picked up by the CEO in its next cycle
 
-**Precepts Editor**
-- Current Precepts document with all field states (✓ ~ ? ○)
-- Owner can edit any field directly
-- Changes logged in audit log, CEO receives updated Precepts in next cycle
-- Major changes trigger a Board Request from the CEO for strategic replanning
+**Inspect Pages (via links in the letter)**
+- Initiative detail: full chain from CEO reasoning → task specs → worker outputs → evaluations → outcomes
+- Audit trail: reasoning chains for any decision the owner wants to trace
+- Output artifacts: actual deliverables produced by workers — research reports, outreach drafts, analysis
+- Precepts editor: current Precepts document with all field states (✓ ~ ? ○), owner can edit directly. Changes logged in audit log, CEO receives updated Precepts in next cycle. Major changes trigger a Board Request from the CEO for strategic replanning.
+- Performance view: agent performance profiles, aggregate capability, initiative success rates
 
-**Performance View**
-- Agent performance profiles (acceptance rates, strengths, weaknesses)
-- Aggregate team capability view
-- Initiative-level success rates
-- Intended for periodic review, not daily monitoring
+These pages compensate for the McLuhan amputation (principle 7) — they maintain the owner's connection to the texture of the work. But they're accessed on demand via inspect links, not presented as permanent dashboard sections.
 
 **Design principles:**
-- Decision Room answers: "What do I need to know or decide right now?"
-- If nothing needs attention, say so. An empty Decision Room is a good Decision Room.
-- No gantt charts. No kanban with 50 cards. No notification firehose. No settings toggles for every behavior.
-- Conversational and document-driven, not widget-heavy.
+- The Interface answers: "What do I need to know or decide right now?"
+- If nothing needs attention, the letter says so. A short letter is a good letter.
+- No gantt charts. No kanban with 50 cards. No notification firehose. No settings toggles.
 - Every screen should feel like sitting across from a competent executive, not staring at a control panel.
+- The redesign to a letter-based UI was specifically driven by this principle — a letter IS sitting across from an executive. The previous dashboard design contradicted it by presenting widgets instead of prose.
 
 ### Mode 3: Quick Command (Future, V2+ — Override Interface)
 
@@ -378,7 +375,7 @@ The interface exists at three depths. The owner moves between them as needed, li
 | Depth | What's Visible | When the Owner Is Here | Frequency |
 |---|---|---|---|
 | **Surface** | Morning Briefing email | Daily glance — decisions, exceptions, results | Every day |
-| **Working** | Decision Room — initiatives, outputs, CEO chat | Active investigation — something needs attention or the owner wants to dig in | A few times per week |
+| **Working** | The Interface — CEO's letter, owner input box, inspect links for drill-down | Active investigation — something needs attention or the owner wants to dig in | A few times per week |
 | **Deep** | Audit trail, full chain reasoning, performance data, raw outputs | Diagnostic — understanding why something happened or reviewing system health | Occasionally, or during monthly post-mortems |
 
 Information flows upward by compression. The deep layer contains everything. The working layer contains what's relevant to active initiatives. The surface layer contains only what requires the owner's attention or awareness.
@@ -396,7 +393,7 @@ The PRECEPT interface should have equivalent pressure signals — ambient indica
 - **Exception density** is a pressure signal. More exceptions = more deviation from plan. Fewer exceptions = plan is executing as expected.
 - **North star trajectory** is the deepest pressure signal. Is the number moving? Flat? Declining? This is the one number that tells the owner whether the whole system is working.
 
-These aren't dashboard widgets. They're ambient properties of the existing interface. The owner doesn't look at a "health meter" — they feel the health through the natural properties of the communication they already receive.
+These aren't dashboard widgets. They're ambient properties of the CEO's letter. The owner doesn't look at a "health meter" — they feel the health through the natural properties of the prose they're already reading. A long letter means more is happening that needs attention. A terse letter means everything is on track. The presence of Board Requests in the letter is pressure. The tone of the CEO's writing — confident vs. hedging — is pressure. The number of inspect links pointing to exceptions is pressure. The tiller is the letter itself.
 
 ### The Common Operating Picture
 
@@ -404,7 +401,7 @@ Military command systems work toward a "Common Operating Picture" — a shared, 
 
 PRECEPT's equivalent:
 
-- **Owner's COP:** North star metric, initiative health status, pending Board Requests, exceptions. Available at the top of the Decision Room and summarized in every briefing.
+- **Owner's COP:** North star metric, initiative health status, pending Board Requests, exceptions. Communicated through the CEO's letter in The Interface and summarized in every briefing.
 - **CEO's COP:** Full Precepts + Scribe's compressed output + lessons + owner input. Assembled before every CEO invocation.
 - **Dispatcher's COP:** Dependency graph, task states, worker availability. Real-time from Supabase.
 
@@ -416,10 +413,10 @@ Where the owner can steer. Mapped to the organizational hierarchy.
 
 | Control Surface | What It Changes | How It's Accessed | Effect Scope |
 |---|---|---|---|
-| **Precepts Editor** | Strategic foundation — identity, product, success definition, constraints | Decision Room | Everything downstream. Precepts changes cascade to CEO planning, task specs, evaluation criteria. |
+| **Precepts Editor** | Strategic foundation — identity, product, success definition, constraints | Inspect page via The Interface | Everything downstream. Precepts changes cascade to CEO planning, task specs, evaluation criteria. |
 | **Briefing Reply** | Tactical approvals, holds, redirects | Email reply | Active initiatives. Affects current cycle execution. |
-| **CEO Chat** | Direction, priorities, reasoning queries | Decision Room | Next CEO planning cycle. CEO incorporates as owner input. |
-| **Board Escalation Response** | Fundamental strategic decisions — pivot, restructure, redefine success | Email or Decision Room (prompted by CEO) | Potentially everything. May trigger Precepts rewrite. |
+| **Interface Input Box** | Direction, priorities, reasoning queries | The Interface | Next CEO planning cycle. CEO incorporates as owner input. |
+| **Board Escalation Response** | Fundamental strategic decisions — pivot, restructure, redefine success | Email or The Interface (prompted by CEO) | Potentially everything. May trigger Precepts rewrite. |
 | **Quick Command** | Immediate overrides — pause, resume, approve | Mobile/iMessage (future) | Targeted. Affects specific initiatives or the system as a whole (e.g., "pause all"). |
 
 ### Steering Authority Hierarchy
@@ -428,7 +425,7 @@ Not every control surface has equal authority. They're ordered by impact:
 
 1. **Precepts edits** — change the foundation. Everything recalibrates. (Rare)
 2. **Board Escalation responses** — change the direction. Strategy pivots. (Uncommon)
-3. **CEO Chat direction** — change priorities within current strategy. (Periodic)
+3. **Interface input** — change priorities within current strategy. (Periodic)
 4. **Briefing replies** — approve, hold, redirect within current plan. (Daily)
 5. **Quick Commands** — immediate tactical adjustments. (As needed)
 
@@ -440,7 +437,7 @@ The owner should reach for the lightest touch first. Most days, a briefing reply
 
 Every CEO decision, every Judge verdict, every Board Advisor review — all carry reasoning that the owner can inspect on demand. This isn't for daily consumption. It's for the moments when the owner thinks "why did the system do that?"
 
-The audit log (see `memory.md`) stores full reasoning chains. The Decision Room makes them accessible without requiring the owner to query a database. Click an initiative → see the CEO's plan → see the Dispatcher's assignments → see worker outputs → see Judge verdicts → see the reasoning at every step.
+The audit log (see `memory.md`) stores full reasoning chains. Inspect links in The Interface make them accessible without requiring the owner to query a database. Click an initiative link in the CEO's letter → see the CEO's plan → see the Dispatcher's assignments → see worker outputs → see Judge verdicts → see the reasoning at every step.
 
 This is the organizational equivalent of the glass cockpit — instruments are there when you need them, invisible when you don't.
 
@@ -465,14 +462,14 @@ The briefing should have the confidence to be short when there's nothing to say.
 ### What's Built in V0.1
 - Morning Briefing via Resend (email send + inbound reply via webhook)
 - Onboarding UI (split-screen interview chat + live Precepts builder) — see `onboarding.md`
-- Decision Room: Active Initiatives, Output Gallery, Precepts Editor, CEO Chat
+- The Interface: CEO letter + owner input box + inspect pages for drill-down (initiative detail, audit trail, output artifacts, Precepts editor, performance view)
 - Briefing reply parsing (approval/hold/redirect extraction)
 - Owner authentication (session-based, single-user)
 
 ### What's Deferred to V2+
 - Quick Command (iMessage/push notification channel)
 - Owner style adaptation (automatic briefing density calibration)
-- Mobile-native Decision Room
+- Mobile-native Interface
 - Multi-owner support (feudal layer — separate orgs, separate owners)
 
 ### Interface Implementation Notes
@@ -481,6 +478,6 @@ The briefing should have the confidence to be short when there's nothing to say.
 
 **Reply parsing:** Resend sends an `email.received` webhook with metadata. The engine calls `resend.emails.get(emailId)` to fetch the full reply body, then passes it to the CEO for LLM-based intent extraction. The engine maps extracted intent to state changes: approvals → proceed signals, holds → pause signals, redirects → CEO input for next cycle. Ambiguous replies → CEO requests clarification in next briefing.
 
-**Decision Room real-time updates:** Supabase realtime subscriptions push state changes to the Next.js frontend. When a task moves from REVIEW to ACCEPTED, the initiative view updates immediately. The owner never needs to refresh.
+**Interface real-time updates:** Supabase realtime subscriptions push state changes to the Next.js frontend. When the CEO completes a planning or briefing cycle, the letter on The Interface updates. The CEO also writes to `ceo_chat_messages` when generating the briefing, so The Interface always shows the latest state when the owner opens it.
 
-**Precepts edit flow:** Owner edits in the Decision Room → Supabase update → audit log entry → CEO receives updated Precepts in next invocation. Major edits (changing Success Definition, Identity, or Constraints) trigger a Board Request from the CEO for strategic replanning confirmation.
+**Precepts edit flow:** Owner edits via the Precepts inspect page → Supabase update → audit log entry → CEO receives updated Precepts in next invocation. Major edits (changing Success Definition, Identity, or Constraints) trigger a Board Request from the CEO for strategic replanning confirmation.
