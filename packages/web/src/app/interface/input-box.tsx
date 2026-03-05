@@ -9,8 +9,8 @@ export function InputBox({ orgId }: { orgId: string }) {
   const [error, setError] = useState('')
   const router = useRouter()
 
-  async function handleSend(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSend(e?: React.FormEvent) {
+    e?.preventDefault()
     if (!message.trim() || sending) return
 
     setSending(true)
@@ -37,12 +37,20 @@ export function InputBox({ orgId }: { orgId: string }) {
     }
   }
 
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+  }
+
   return (
     <form onSubmit={handleSend}>
       <textarea
         className="interface-textarea"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
+        onKeyDown={handleKeyDown}
         placeholder=""
         disabled={sending}
       />
@@ -52,7 +60,7 @@ export function InputBox({ orgId }: { orgId: string }) {
         className="interface-send"
         disabled={sending || !message.trim()}
       >
-        {sending ? 'Sending...' : 'Send'}
+        {sending ? 'Thinking...' : 'Send'}
       </button>
     </form>
   )
