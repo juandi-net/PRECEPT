@@ -56,7 +56,10 @@ You MUST respond with valid JSON only. No markdown, no explanation outside the J
 
 Only include fields in updatedFields that changed in this exchange. If nothing changed, use an empty object {}.
 
-The valid field names are: identity, product_service, stage, success_definition, resources, constraints, competitive_landscape, history, active_priorities, data_policy.`;
+The valid field names are: mission_statement, identity, product_service, stage, success_definition, resources, constraints, competitive_landscape, history, active_priorities, data_policy.
+
+## Mission Statement Field
+The mission_statement field should be a single, punchy sentence — the company's core mission distilled to its essence (e.g., "Impact 1,000,000,000 people"). Extract or ask for this early in Phase 1. If the owner gives a long explanation, distill it down and confirm: "So in one sentence, your mission is: [distilled version]. Is that right?"`;
 
 export function buildMessages(
   conversation: ConversationMessage[],
@@ -123,7 +126,7 @@ export function buildOpeningMessages(): Array<{ role: string; content: string }>
 ## Current Extraction State
 Phase: 1/6
 Fields extracted: none
-Fields remaining: identity, product_service, stage, success_definition, resources, constraints, competitive_landscape, history, active_priorities, data_policy
+Fields remaining: mission_statement, identity, product_service, stage, success_definition, resources, constraints, competitive_landscape, history, active_priorities, data_policy
 Active thread: none
 Topics covered: none`,
     },

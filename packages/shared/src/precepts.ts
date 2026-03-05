@@ -1,4 +1,5 @@
 export const PRECEPTS_FIELDS = [
+  'mission_statement',
   'identity',
   'product_service',
   'stage',
@@ -35,6 +36,7 @@ export interface Precepts {
 }
 
 export const FIELD_LABELS: Record<PreceptsFieldName, string> = {
+  mission_statement: 'Mission Statement',
   identity: 'Identity',
   product_service: 'Product / Service',
   stage: 'Stage',

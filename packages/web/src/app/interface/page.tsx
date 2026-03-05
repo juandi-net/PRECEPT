@@ -50,9 +50,9 @@ export default async function InterfacePage() {
     .limit(1)
     .single()
 
-  const identity = (precepts?.content as Record<string, unknown>)
-    ?.identity as Record<string, unknown> | undefined
-  const mission = (identity?.content as string) ?? null
+  const missionField = (precepts?.content as Record<string, unknown>)
+    ?.mission_statement as { content?: string } | undefined
+  const mission = missionField?.content ?? null
 
   const letterHtml = latestMessage
     ? parseMarkdownLinks(latestMessage.content)
