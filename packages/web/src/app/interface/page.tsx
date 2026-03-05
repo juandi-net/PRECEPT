@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { format } from 'date-fns'
+import { OrgSwitcher } from '@/components/org-switcher'
 import { InputBox } from './input-box'
 import { NewsTicker } from './news-ticker'
 import './interface.css'
@@ -28,12 +30,16 @@ export default async function InterfacePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: org } = await supabase
+  const { data: orgs } = await supabase
     .from('orgs')
     .select('id, name')
-    .single()
+    .order('created_at')
 
-  if (!org) redirect('/onboarding')
+  if (!orgs || orgs.length === 0) redirect('/onboarding')
+
+  const cookieStore = await cookies()
+  const savedOrgId = cookieStore.get('active_org_id')?.value
+  const org = orgs.find((o) => o.id === savedOrgId) ?? orgs[0]
 
   // Get latest proactive CEO letter (briefing or escalation)
   const { data: latestLetter } = await supabase
@@ -81,7 +87,7 @@ export default async function InterfacePage() {
   return (
     <div className="interface-page">
       <div className="interface-header">
-        <span><strong>{org.name.toUpperCase()}</strong></span>
+        <OrgSwitcher orgs={orgs} activeOrg={org} />
         {mission && (
           <span className="interface-mission"><strong>{mission}</strong></span>
         )}
