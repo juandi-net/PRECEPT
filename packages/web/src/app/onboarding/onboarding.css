@@ -1,0 +1,342 @@
+/* ── Layout ── */
+.onboarding-page {
+  font-family: 'Times New Roman', Times, serif;
+  color: #111;
+  background: #fff;
+  height: 100vh;
+  display: flex;
+}
+
+.onboarding-error {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #c00;
+  font-size: 0.875rem;
+  z-index: 10;
+}
+
+.onboarding-chat-pane {
+  width: 50%;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+}
+
+.onboarding-precepts-pane {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* ── Chat (interface-style) ── */
+.chat-center {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.chat-content {
+  max-width: 640px;
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.chat-letter {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  text-align: center;
+}
+
+.chat-owner-msg {
+  font-size: 0.875rem;
+  color: #666;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.chat-typing {
+  font-size: 0.875rem;
+  color: #999;
+  font-style: italic;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.chat-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.125rem;
+  border: 1px solid #ddd;
+  resize: vertical;
+  margin-top: 2rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.chat-textarea:focus {
+  border-color: #999;
+}
+
+.chat-textarea:disabled {
+  opacity: 0.5;
+}
+
+.chat-input-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.chat-send {
+  padding: 0.5rem 1.5rem;
+  min-width: 120px;
+  min-height: 44px;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  background: #111;
+  color: #fff;
+  border: 1px solid #111;
+  cursor: pointer;
+}
+
+.chat-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Document chips (file upload) ── */
+.chat-documents {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0 1.5rem 0.5rem;
+}
+
+.chat-doc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 0.75rem;
+  border: 1px solid #ddd;
+  color: #666;
+}
+
+.chat-doc-chip-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  font-size: 0.875rem;
+  padding: 0;
+  line-height: 1;
+}
+
+.chat-doc-chip-remove:hover {
+  color: #c00;
+}
+
+.chat-attach-btn {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 0.5rem 1.5rem;
+  min-width: 120px;
+  min-height: 44px;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  color: #666;
+  cursor: pointer;
+}
+
+.chat-attach-btn:hover {
+  border-color: #999;
+}
+
+/* ── Precepts panel ── */
+.precepts-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.precepts-header h2 {
+  font-size: 1rem;
+  font-weight: normal;
+  margin: 0;
+}
+
+.precepts-header-count {
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.precepts-list {
+  padding: 1.5rem;
+}
+
+.precept-field {
+  padding: 1rem 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.precept-field:last-child {
+  border-bottom: none;
+}
+
+.precept-field--empty {
+  opacity: 0.4;
+}
+
+.precept-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.35rem;
+}
+
+.precept-field-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+}
+
+.precept-field-state {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+/* State indicators — text-only, no color badges */
+.precept-field-state--confirmed::before { content: '\2713 '; }
+.precept-field-state--hypothesis::before { content: '~ '; }
+.precept-field-state--research_pending::before { content: '? '; }
+.precept-field-state--open_question::before { content: '\25CB '; }
+
+.precept-field-content {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.precept-field-notes {
+  font-size: 0.75rem;
+  color: #666;
+  font-style: italic;
+  margin-top: 0.35rem;
+}
+
+/* ── Confirmation view ── */
+.confirmation-page {
+  font-family: 'Times New Roman', Times, serif;
+  color: #111;
+  background: #fff;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.confirmation-title {
+  font-size: 1.5rem;
+  font-weight: normal;
+  margin-bottom: 0.5rem;
+}
+
+.confirmation-subtitle {
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.confirmation-field {
+  margin-bottom: 2rem;
+}
+
+.confirmation-field-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.confirmation-field-state {
+  font-size: 0.75rem;
+  color: #666;
+  float: right;
+}
+
+.confirmation-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem 1rem;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  line-height: 1.6;
+}
+
+.confirmation-textarea:focus {
+  border-color: #999;
+}
+
+.confirmation-launch {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  background: #111;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  margin-top: 2rem;
+}
+
+.confirmation-launch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.confirmation-hint {
+  font-size: 0.75rem;
+  color: #666;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* ── Complete view ── */
+.complete-page {
+  font-family: 'Times New Roman', Times, serif;
+  color: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
+}
+
+.complete-title {
+  font-size: 1.5rem;
+  font-weight: normal;
+}
+
+.complete-subtitle {
+  font-size: 0.875rem;
+  color: #666;
+  margin-top: 0.5rem;
+}

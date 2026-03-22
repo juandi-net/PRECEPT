@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  macOS LaunchAgent for PRECEPT Web.
+  Update all paths below before installing:
+    cp com.precept.web.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.precept.web.plist
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.precept.web</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/path/to/PRECEPT/scripts/start-web.sh</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/path/to/PRECEPT/packages/web</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/usr/local/var/log/precept-web.log</string>
+    <key>StandardErrorPath</key>
+    <string>/usr/local/var/log/precept-web.error.log</string>
+</dict>
+</plist>

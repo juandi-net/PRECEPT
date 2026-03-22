@@ -1,0 +1,42 @@
+# OCI container image for PRECEPT org runtimes.
+# Built with: container build -t precept-org:latest -f Containerfile.org .
+# Runs on Apple Container (Apple Silicon, macOS 26+).
+
+FROM ubuntu:24.04
+
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    jq \
+    wget \
+    unzip \
+    ca-certificates \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Bun
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:$PATH"
+
+# Install GitHub CLI
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+    | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+    | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && apt-get update && apt-get install -y gh \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install agent-browser (pinned version)
+RUN bun install -g agent-browser@0.16.3
+# agent-browser uses #!/usr/bin/env node — Bun can serve as the Node runtime
+RUN ln -s /root/.bun/bin/bun /usr/local/bin/node
+
+# Worker scripts — only the scripts workers invoke via bash_execute
+COPY skills/scripts/ /opt/precept/scripts/
+RUN chmod +x /opt/precept/scripts/*
+
+# PATH: scripts and bin directories
+ENV PATH="/opt/precept/scripts:/opt/precept/bin:$PATH"
+
+WORKDIR /workspace

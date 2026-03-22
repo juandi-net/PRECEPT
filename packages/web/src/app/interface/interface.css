@@ -1,0 +1,368 @@
+.interface-page {
+  font-family: 'Times New Roman', Times, serif;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  color: #111;
+  background: #fff;
+  overflow: hidden;
+  overscroll-behavior-y: contain;
+}
+
+.interface-header {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: calc(1rem + env(safe-area-inset-top, 0px)) calc(1.5rem + env(safe-area-inset-right, 0px)) 1rem calc(1.5rem + env(safe-area-inset-left, 0px));
+  font-size: 0.875rem;
+  color: #111;
+  background: #fff;
+  z-index: 10;
+}
+
+/* Org switcher */
+.org-switcher {
+  position: relative;
+}
+
+.org-switcher-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 0.875rem;
+  color: #111;
+  cursor: pointer;
+  padding: 0;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.org-switcher-chevron {
+  font-size: 0.65rem;
+  line-height: 1;
+}
+
+.org-switcher-dropdown {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid #ddd;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 0.875rem;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.org-switcher-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  min-height: 44px;
+  text-align: left;
+  background: none;
+  border: none;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 0.875rem;
+  color: #111;
+  cursor: pointer;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.org-switcher-item:hover {
+  background: #f5f5f5;
+}
+
+.org-switcher-item--active {
+  font-weight: bold;
+}
+
+.org-switcher-item--add {
+  color: #777;
+}
+
+.org-switcher-divider {
+  height: 1px;
+  background: #ddd;
+}
+
+.interface-center {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.interface-content {
+  max-width: 640px;
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.interface-mission {
+  font-size: 0.875rem;
+}
+
+.interface-letter {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  text-align: center;
+}
+
+.interface-letter a {
+  color: #111;
+  text-decoration: underline;
+}
+
+.interface-requests {
+  margin-bottom: 1.5rem;
+}
+
+.interface-requests-summary {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  cursor: pointer;
+  list-style: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.interface-requests-summary::-webkit-details-marker {
+  display: none;
+}
+
+.interface-requests-summary::before {
+  content: '▸ ';
+}
+
+.interface-requests[open] > .interface-requests-summary::before {
+  content: '▾ ';
+}
+
+.interface-request {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  margin: 0 0 0.75rem;
+}
+
+.interface-request:first-of-type {
+  margin-top: 0.75rem;
+}
+
+.interface-request a {
+  color: #111;
+  text-decoration: underline;
+}
+
+.interface-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.125rem;
+  border: 1px solid #ddd;
+  resize: vertical;
+  margin-top: 2rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.interface-textarea:focus {
+  border-color: #999;
+}
+
+.interface-response {
+  margin-bottom: 2rem;
+}
+
+.interface-input-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.interface-attach {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 0.5rem 1.5rem;
+  min-width: 120px;
+  min-height: 44px;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  color: #666;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.interface-attach:hover {
+  border-color: #999;
+}
+
+.interface-attach:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.interface-send {
+  padding: 0.5rem 1.5rem;
+  min-width: 120px;
+  min-height: 44px;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  background: #111;
+  color: #fff;
+  border: 1px solid #111;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.interface-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.interface-file-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.interface-file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 0.75rem;
+  border: 1px solid #ddd;
+  color: #666;
+}
+
+.interface-file-chip-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  font-size: 0.875rem;
+  padding: 0;
+  line-height: 1;
+}
+
+.interface-file-chip-remove:hover {
+  color: #c00;
+}
+
+.interface-error {
+  color: #c00;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* News ticker */
+.ticker-bar {
+  flex-shrink: 0;
+  height: calc(32px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: #fff;
+  border-top: 1px solid #ddd;
+  overflow: hidden;
+  z-index: 50;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 13px;
+  color: #555;
+}
+
+.ticker-bar:hover .ticker-track {
+  animation-play-state: paused;
+}
+
+.ticker-track {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  white-space: nowrap;
+  animation: ticker-scroll var(--ticker-duration, 30s) linear infinite;
+}
+
+.ticker-item {
+  color: #555;
+  text-decoration: none;
+  padding: 0 0.75rem;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ticker-item:hover {
+  color: #111;
+}
+
+.ticker-separator {
+  color: #ccc;
+  user-select: none;
+}
+
+.ticker-idle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #bbb;
+  font-style: italic;
+}
+
+/* Pull to refresh */
+.pull-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 0.8rem;
+  color: #999;
+  overflow: hidden;
+  transition: opacity 0.15s ease;
+  flex-shrink: 0;
+}
+
+.pull-ready {
+  color: #111;
+}
+
+/* Thinking dots — always in DOM, toggled via visibility */
+.thinking-dot-on,
+.thinking-dot-off {
+  display: inline;
+}
+
+.thinking-dot-off {
+  visibility: hidden;
+}
+
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}

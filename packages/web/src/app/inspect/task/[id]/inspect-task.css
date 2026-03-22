@@ -1,0 +1,285 @@
+.inspect-page {
+  font-family: 'Times New Roman', Times, serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #111;
+  background: #fff;
+  padding: 3rem 1.5rem;
+}
+
+.inspect-container {
+  max-width: 640px;
+  width: 100%;
+}
+
+.inspect-back-top {
+  display: inline-block;
+  color: #777;
+  font-size: 0.875rem;
+  text-decoration: none;
+  margin-bottom: 2rem;
+}
+
+.inspect-back-top:hover {
+  color: #111;
+}
+
+.inspect-title {
+  font-size: 1.5rem;
+  font-weight: normal;
+  margin: 0 0 1.5rem 0;
+}
+
+.inspect-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.inspect-status-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  letter-spacing: 0.03em;
+  color: #fff;
+  background: #666;
+}
+
+.inspect-status-badge[data-state="ACCEPTED"] { background: #2d7a3a; }
+.inspect-status-badge[data-state="FAILED"] { background: #c33; }
+.inspect-status-badge[data-state="ESCALATED"] { background: #c90; }
+.inspect-status-badge[data-state="IN_PROGRESS"] { background: #2563eb; }
+.inspect-status-badge[data-state="REVIEW"] { background: #7c3aed; }
+.inspect-status-badge[data-state="JUDGMENT"] { background: #7c3aed; }
+
+.inspect-role {
+  font-size: 0.875rem;
+  color: #777;
+}
+
+.inspect-meta-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  font-size: 0.875rem;
+}
+
+.inspect-meta-value {
+  color: #777;
+}
+
+.inspect-section {
+  margin-bottom: 1.5rem;
+}
+
+.inspect-label {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.inspect-value {
+  margin: 0;
+}
+
+.inspect-criteria-list {
+  margin: 0.25rem 0 0 1.25rem;
+  padding: 0;
+}
+
+.inspect-criteria-list li {
+  margin-bottom: 0.25rem;
+}
+
+.inspect-empty {
+  color: #999;
+  font-style: italic;
+}
+
+.inspect-output {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  margin: 0 0 1.5rem 0;
+}
+
+.inspect-latest-reason {
+  font-style: italic;
+  color: #777;
+  font-size: 0.9rem;
+  margin: 0 0 1.5rem 0;
+}
+
+.inspect-full-details {
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+  margin-top: 1.5rem;
+}
+
+.inspect-full-details summary {
+  cursor: pointer;
+  color: #777;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.inspect-full-details summary:hover {
+  color: #111;
+}
+
+.inspect-detail-section {
+  margin-bottom: 1.5rem;
+}
+
+.inspect-review-entry {
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+  line-height: 1.5;
+}
+
+.inspect-review-agent {
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+.inspect-review-reason {
+  color: #555;
+}
+
+.inspect-transitions {
+  border-top: 1px solid #eee;
+  padding-top: 0.5rem;
+}
+
+.inspect-transition-entry {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.inspect-transition-arrow {
+  color: #999;
+}
+
+.inspect-transition-agent {
+  color: #777;
+  font-size: 0.85rem;
+}
+
+.inspect-transition-reason {
+  color: #777;
+  font-size: 0.85rem;
+}
+
+.inspect-transition-time {
+  color: #999;
+  font-size: 0.8rem;
+}
+
+.inspect-back {
+  display: block;
+  text-align: center;
+  margin-top: 2.5rem;
+  color: #111;
+  font-size: 1rem;
+}
+
+.inspect-not-found {
+  text-align: center;
+  color: #999;
+  margin-top: 4rem;
+}
+
+.inspect-code-block {
+  background: #f5f5f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+
+.inspect-code-block code {
+  color: #111;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.inspect-output-text {
+  white-space: pre-wrap;
+  font-family: 'Times New Roman', 'Georgia', serif;
+  line-height: 1.6;
+  margin: 4px 0;
+  color: #111;
+}
+
+.inspect-link {
+  color: #2a5db0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.inspect-link:hover {
+  color: #1a3d7a;
+}
+
+.inspect-feedback-form {
+  margin-top: 0.5rem;
+}
+
+.inspect-feedback-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.inspect-feedback-textarea:focus {
+  border-color: #999;
+}
+
+.inspect-feedback-send {
+  float: right;
+  margin-top: 0.5rem;
+  padding: 0.5rem 1.5rem;
+  min-height: 44px;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  background: #111;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.inspect-feedback-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.inspect-feedback-error {
+  color: #c00;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.inspect-feedback-sent {
+  color: #777;
+  font-style: italic;
+  margin: 0.5rem 0 0 0;
+}
+
+.inspect-skills-footer {
+  font-size: 0.8rem;
+  color: #777;
+  margin: 2rem 0 0 0;
+  text-align: center;
+}

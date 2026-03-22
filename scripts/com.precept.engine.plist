@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  macOS LaunchAgent for PRECEPT Engine.
+  Update all paths below before installing:
+    cp com.precept.engine.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.precept.engine.plist
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.precept.engine</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/path/to/PRECEPT/scripts/start-engine.sh</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/path/to/PRECEPT</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/usr/local/var/log/precept-engine.log</string>
+    <key>StandardErrorPath</key>
+    <string>/usr/local/var/log/precept-engine.error.log</string>
+</dict>
+</plist>

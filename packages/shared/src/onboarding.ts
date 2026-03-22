@@ -1,0 +1,60 @@
+import type { CornerstoneDraft } from './cornerstone';
+import type { ContextDocument } from './documents';
+
+export type SessionStatus = 'in_progress' | 'completed' | 'abandoned';
+
+export interface OnboardingSession {
+  id: string;
+  status: SessionStatus;
+  conversation: ConversationMessage[];
+  cornerstoneDraft: CornerstoneDraft;
+  extractionTracker: ExtractionTracker;
+  contextDocuments: ContextDocument[] | null;
+  startedAt: string;
+  completedAt: string | null;
+}
+
+export interface ConversationMessage {
+  role: 'owner' | 'ceo';
+  content: string;
+  timestamp: string;
+  rawResponse?: string; // Full AI JSON response for CEO messages, used to replay accurate history
+}
+
+export interface ExtractionTracker {
+  coveredTopics: string[];
+  currentPhase: number; // 1-6
+  fieldsExtracted: string[];
+  fieldsRemaining: string[];
+  activeThread: string | null; // what the CEO is currently exploring
+}
+
+// API request/response types
+export interface StartSessionResponse {
+  sessionId: string;
+  message: string; // CEO's opening message
+}
+
+export interface SendMessageRequest {
+  sessionId: string;
+  message: string;
+}
+
+export interface SendMessageResponse {
+  message: string; // CEO's reply
+  cornerstoneDraft: CornerstoneDraft;
+  phase: number;
+}
+
+export interface CompleteSessionRequest {
+  sessionId: string;
+  finalDraft: CornerstoneDraft; // owner-edited draft from confirmation phase
+}
+
+export interface CompleteSessionResponse {
+  cornerstoneId: string;
+}
+
+export interface SessionStatusResponse {
+  session: OnboardingSession;
+}

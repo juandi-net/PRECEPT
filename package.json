@@ -1,0 +1,18 @@
+{
+  "name": "precept",
+  "private": true,
+  "workspaces": [
+    "packages/shared",
+    "packages/engine",
+    "packages/web"
+  ],
+  "scripts": {
+    "build": "bun run --cwd packages/shared build; bun run --cwd packages/engine build",
+    "test": "bun run --cwd packages/engine test",
+    "dev:engine": "bun run --cwd packages/engine dev",
+    "dev:web": "bun run --cwd packages/web dev"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10"
+  }
+}

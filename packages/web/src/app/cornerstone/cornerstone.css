@@ -1,0 +1,89 @@
+.cornerstone-page {
+  font-family: 'Times New Roman', Times, serif;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  color: #111;
+}
+
+.cornerstone-title {
+  font-size: 1.5rem;
+  font-weight: normal;
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.cornerstone-empty {
+  font-size: 0.875rem;
+  color: #999;
+  text-align: center;
+  font-style: italic;
+}
+
+.cornerstone-section {
+  margin-bottom: 2rem;
+}
+
+.cornerstone-section-title {
+  font-size: 0.75rem;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #999;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.35rem;
+}
+
+.cornerstone-field {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.cornerstone-field--empty {
+  opacity: 0.4;
+}
+
+.cornerstone-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.25rem;
+}
+
+.cornerstone-label {
+  font-size: 0.8125rem;
+  font-weight: bold;
+}
+
+.cornerstone-empty-note {
+  display: block;
+  font-size: 0.8125rem;
+  font-style: italic;
+  color: #bbb;
+  margin-top: 0.15rem;
+}
+
+.cornerstone-state {
+  font-size: 0.8125rem;
+  font-family: monospace;
+  color: #666;
+}
+
+.cornerstone-field--confirmed .cornerstone-state { color: #2a7d2a; }
+.cornerstone-field--hypothesis .cornerstone-state { color: #b08800; }
+.cornerstone-field--research_pending .cornerstone-state { color: #c06000; }
+.cornerstone-field--open_question .cornerstone-state { color: #c00; }
+
+.cornerstone-content {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.cornerstone-notes {
+  font-size: 0.8125rem;
+  font-style: italic;
+  color: #777;
+  margin-top: 0.35rem;
+}
