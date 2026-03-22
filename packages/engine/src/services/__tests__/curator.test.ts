@@ -23,22 +23,30 @@ vi.mock('../../db/audit.js', () => ({
   getRecentEvents: vi.fn().mockResolvedValue([]),
 }));
 
-const { mockUpsertSkill, mockGetAllActiveSkillNames } = vi.hoisted(() => ({
+const { mockUpsertSkill, mockGetAllActiveSkillsWithContent } = vi.hoisted(() => ({
   mockUpsertSkill: vi.fn().mockResolvedValue({ id: 'skill-1', name: 'test-skill' }),
-  mockGetAllActiveSkillNames: vi.fn().mockResolvedValue(['communication-tone', 'quality-baseline']),
+  mockGetAllActiveSkillsWithContent: vi.fn().mockResolvedValue([
+    { name: 'communication-tone', content: '## When To Use\nWriting external comms.\n\n## Procedure\nUse warm, professional tone.' },
+    { name: 'quality-baseline', content: '## When To Use\nAll tasks.\n\n## Procedure\nCheck acceptance criteria.' },
+  ]),
 }));
 
 vi.mock('../../db/skills.js', () => ({
   upsertSkill: mockUpsertSkill,
-  getAllActiveSkillNames: mockGetAllActiveSkillNames,
+  getAllActiveSkillsWithContent: mockGetAllActiveSkillsWithContent,
 }));
 
 vi.mock('../../db/decisions.js', () => ({
   getRecentLessons: vi.fn().mockResolvedValue([]),
 }));
 
+const { mockGetSkillPerformanceSummary } = vi.hoisted(() => ({
+  mockGetSkillPerformanceSummary: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock('../../db/skill-events.js', () => ({
   logSkillEvent: vi.fn(),
+  getSkillPerformanceSummary: mockGetSkillPerformanceSummary,
 }));
 
 vi.mock('../../config/role-registry.js', () => ({
@@ -166,6 +174,94 @@ describe('CuratorService', () => {
       scope: 'org_wide',
       status: 'active',
     }));
+  });
+
+  it('fetches skill performance and includes it in Curator message', async () => {
+    mockGetSkillPerformanceSummary.mockResolvedValue([
+      { skillName: 'cold-outreach', timesLoaded: 6, accepts: 2, rejects: 4 },
+      { skillName: 'competitive-analysis', timesLoaded: 5, accepts: 5, rejects: 0 },
+    ]);
+
+    mockInvokeAndValidate.mockResolvedValue({
+      response: {
+        content: '{}',
+        parsed: { actions: [], reasoning: 'cold-outreach needs work.' },
+        usage: { promptTokens: 600, completionTokens: 200, totalTokens: 800 },
+        model: 'test-sonnet',
+        durationMs: 2000,
+      },
+      data: { actions: [], reasoning: 'cold-outreach needs work.' },
+    });
+
+    await curator.extractSkills('org-1');
+
+    expect(mockGetSkillPerformanceSummary).toHaveBeenCalledWith('org-1');
+
+    const userMessage = mockInvokeAndValidate.mock.calls[0][1].messages[0].content;
+    expect(userMessage).toContain('## Skill Performance (last 7 days)');
+    expect(userMessage).toContain('cold-outreach: loaded 6 times, 2 accepted, 4 rejected (33% acceptance)');
+    expect(userMessage).toContain('competitive-analysis: loaded 5 times, 5 accepted, 0 rejected (100% acceptance)');
+  });
+
+  it('shows empty skill performance message when no data exists', async () => {
+    mockGetSkillPerformanceSummary.mockResolvedValue([]);
+
+    mockInvokeAndValidate.mockResolvedValue({
+      response: {
+        content: '{}',
+        parsed: { actions: [], reasoning: 'No patterns.' },
+        usage: { promptTokens: 500, completionTokens: 200, totalTokens: 700 },
+        model: 'test-sonnet',
+        durationMs: 2000,
+      },
+      data: { actions: [], reasoning: 'No patterns.' },
+    });
+
+    await curator.extractSkills('org-1');
+
+    const userMessage = mockInvokeAndValidate.mock.calls[0][1].messages[0].content;
+    expect(userMessage).toContain('No skill usage data since last cycle.');
+  });
+
+  it('includes full skill content in Curator message for existing skills', async () => {
+    mockInvokeAndValidate.mockResolvedValue({
+      response: {
+        content: '{}',
+        parsed: { actions: [], reasoning: 'Skills look solid.' },
+        usage: { promptTokens: 800, completionTokens: 200, totalTokens: 1000 },
+        model: 'test-sonnet',
+        durationMs: 2000,
+      },
+      data: { actions: [], reasoning: 'Skills look solid.' },
+    });
+
+    await curator.extractSkills('org-1');
+
+    const userMessage = mockInvokeAndValidate.mock.calls[0][1].messages[0].content;
+    expect(userMessage).toContain('### communication-tone');
+    expect(userMessage).toContain('Use warm, professional tone.');
+    expect(userMessage).toContain('### quality-baseline');
+    expect(userMessage).toContain('Check acceptance criteria.');
+  });
+
+  it('system prompt prioritizes failure signals', async () => {
+    mockInvokeAndValidate.mockResolvedValue({
+      response: {
+        content: '{}',
+        parsed: { actions: [], reasoning: 'No patterns.' },
+        usage: { promptTokens: 500, completionTokens: 200, totalTokens: 700 },
+        model: 'test-sonnet',
+        durationMs: 2000,
+      },
+      data: { actions: [], reasoning: 'No patterns.' },
+    });
+
+    await curator.extractSkills('org-1');
+
+    const systemPrompt = mockInvokeAndValidate.mock.calls[0][1].systemPrompt;
+    expect(systemPrompt).toContain('PRIORITY ORDER');
+    expect(systemPrompt).toContain('Skill performance data');
+    expect(systemPrompt).toContain('<50% acceptance rate');
   });
 
   it('deprecates skill without overwriting content', async () => {

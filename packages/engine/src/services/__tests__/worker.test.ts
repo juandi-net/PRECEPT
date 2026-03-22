@@ -23,8 +23,12 @@ vi.mock('../../db/audit.js', () => ({
   logEvent: vi.fn(),
 }));
 
+const { mockLogSkillEvent } = vi.hoisted(() => ({
+  mockLogSkillEvent: vi.fn(),
+}));
+
 vi.mock('../../db/skill-events.js', () => ({
-  logSkillEvent: vi.fn(),
+  logSkillEvent: mockLogSkillEvent,
 }));
 
 const { mockGetSkillByName, mockGetSkillIndexForWorker } = vi.hoisted(() => ({
@@ -343,6 +347,44 @@ describe('WorkerService', () => {
       expect(callArgs.messages[0].content).toContain('Rework Required');
       expect(callArgs.messages[0].content).toContain('Needs more detail on pin layout');
       expect(callArgs.messages[0].content).toContain('Original work');
+    });
+
+    it('logs skill events with rework flag when skills are loaded during rework', async () => {
+      mockGetSkillByName.mockResolvedValue({
+        id: 'skill-1',
+        name: 'web-research',
+        description: 'Search the web',
+        scope: 'org_wide',
+        role: null,
+        status: 'active',
+        triggerTags: [],
+        filePath: null,
+        content: '# Web Research\n\nProcedure content.',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      mockInvokeAgent.mockImplementation(async (_agentId: string, opts: any) => {
+        await opts.toolHandler!('load_skill', { name: 'web-research' });
+        return {
+          content: '{}',
+          parsed: VALID_OUTPUT,
+          usage: { promptTokens: 400, completionTokens: 200, totalTokens: 600 },
+          model: 'test-sonnet',
+          durationMs: 1500,
+        };
+      });
+
+      const task = makeTask({ output: { ...VALID_OUTPUT, output: 'Original work' } });
+      await worker.rework(task, 'Needs more detail', 'reviewer');
+
+      expect(mockUpdateTaskSkillsLoaded).toHaveBeenCalledWith('task-1', ['web-research']);
+      expect(mockLogSkillEvent).toHaveBeenCalledWith(expect.objectContaining({
+        orgId: 'org-1',
+        skillName: 'web-research',
+        eventType: 'loaded',
+        metadata: expect.objectContaining({ taskId: 'task-1', taskRole: 'researcher', rework: true }),
+      }));
     });
 
     it('stores revised output via updateTaskOutput', async () => {

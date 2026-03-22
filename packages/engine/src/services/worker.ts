@@ -250,6 +250,14 @@ export class WorkerService {
       const skillsList = Array.from(loadedSkills);
       if (skillsList.length > 0) {
         await updateTaskSkillsLoaded(task.id, skillsList);
+        for (const skillName of skillsList) {
+          logSkillEvent({
+            orgId: task.org_id,
+            skillName,
+            eventType: 'loaded',
+            metadata: { taskId: task.id, taskRole: task.role, rework: true },
+          });
+        }
       }
 
       logEvent(task.org_id, 'worker.rework_complete', agentId, {

@@ -82,6 +82,21 @@ export async function getAllActiveSkillNames(orgId: string): Promise<string[]> {
   return data.map(s => s.name);
 }
 
+export async function getAllActiveSkillsWithContent(
+  orgId: string
+): Promise<Array<{ name: string; content: string | null }>> {
+  const data = await dbQuery<Array<{ name: string; content: string | null }>>(
+    'getAllActiveSkillsWithContent',
+    async () => db
+      .from('skill_index')
+      .select('name, content')
+      .eq('org_id', orgId)
+      .eq('status', 'active')
+      .order('name'),
+  );
+  return data;
+}
+
 export interface InsertSkillParams {
   orgId: string;
   name: string;

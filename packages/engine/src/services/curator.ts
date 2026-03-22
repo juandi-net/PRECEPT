@@ -2,11 +2,11 @@ import { invokeAndValidate } from '../ai/validate.js';
 import { invokeAgent } from '../ai/invoke.js';
 import { CuratorOutputSchema } from '../ai/schemas.js';
 import { CURATOR_SYSTEM_PROMPT, buildCuratorMessage } from '../ai/prompts/curator.js';
-import { upsertSkill, getAllActiveSkillNames } from '../db/skills.js';
+import { upsertSkill, getAllActiveSkillsWithContent } from '../db/skills.js';
 import { getRecentEvents } from '../db/audit.js';
 import { getRecentLessons } from '../db/decisions.js';
 import { logEvent } from '../db/audit.js';
-import { logSkillEvent } from '../db/skill-events.js';
+import { logSkillEvent, getSkillPerformanceSummary } from '../db/skill-events.js';
 import { getActiveRoleMemoryEntries } from '../db/role-memory.js';
 import { upsertRoleSummary } from '../db/role-summaries.js';
 import type { AuditEventType } from '@precept/shared';
@@ -37,11 +37,12 @@ export class CuratorService {
     const start = Date.now();
     console.log('[curator] starting skill extraction...');
 
-    // Gather evaluation patterns
-    const [recentEvents, lessons, existingSkills] = await Promise.all([
+    // Gather evaluation patterns + skill performance data
+    const [recentEvents, lessons, existingSkills, skillPerformance] = await Promise.all([
       getRecentEvents(orgId, 100),
       getRecentLessons(orgId, 20),
-      getAllActiveSkillNames(orgId),
+      getAllActiveSkillsWithContent(orgId),
+      getSkillPerformanceSummary(orgId),
     ]);
 
     // Extract review and judge patterns from audit events
@@ -81,7 +82,13 @@ export class CuratorService {
           reviewPatterns,
           judgePatterns,
           lessons: lessons.map(l => ({ whatTried: l.whatTried, whatLearned: l.whatLearned })),
-          existingSkills,
+          existingSkills: existingSkills.map(s => ({ name: s.name, content: s.content })),
+          skillPerformance: skillPerformance.map(s => ({
+            skillName: s.skillName,
+            timesLoaded: s.timesLoaded,
+            accepts: s.accepts,
+            rejects: s.rejects,
+          })),
         }),
       }],
       temperature: 0.4,
