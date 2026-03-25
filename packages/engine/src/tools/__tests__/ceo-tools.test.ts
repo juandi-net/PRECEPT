@@ -77,6 +77,15 @@ vi.mock('../../db/client.js', () => ({
   db: { from: (...args: any[]) => mockDbFrom(...args) },
 }));
 
+const mockEmbedText = vi.fn();
+const mockMatchRoleMemory = vi.fn();
+vi.mock('../../lib/embeddings.js', () => ({
+  embedText: (...args: any[]) => mockEmbedText(...args),
+}));
+vi.mock('../../db/role-memory.js', () => ({
+  matchRoleMemory: (...args: any[]) => mockMatchRoleMemory(...args),
+}));
+
 import { createCeoToolHandler, CEO_TOOLS } from '../ceo-tools.js';
 
 describe('CEO Tools', () => {
@@ -95,7 +104,7 @@ describe('CEO Tools', () => {
   });
 
   it('defines all tools', () => {
-    expect(CEO_TOOLS).toHaveLength(15);
+    expect(CEO_TOOLS).toHaveLength(17);
     expect(CEO_TOOLS.map(t => t.function.name)).toEqual([
       'search_initiatives',
       'get_tasks',
@@ -112,6 +121,8 @@ describe('CEO Tools', () => {
       'credentials',
       'org_admin',
       'resolve_escalation',
+      'web_search',
+      'query_role_memory',
     ]);
   });
 
@@ -439,6 +450,107 @@ describe('CEO Tools', () => {
       const parsed = JSON.parse(result);
 
       expect(parsed.error).toContain('not found');
+    });
+  });
+
+  describe('web_search', () => {
+    it('fetches DuckDuckGo and returns parsed results', async () => {
+      const fakeDdgHtml = `
+        <a rel="nofollow" class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Frobotech.com&rut=abc">RoboTech Inc</a>
+        <a class="result__snippet" href="#">Leading robotics company in the Bay Area</a>
+        <a rel="nofollow" class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com&rut=def">Example Corp</a>
+        <a class="result__snippet" href="#">Another company</a>
+      `;
+
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        text: () => Promise.resolve(fakeDdgHtml),
+      });
+
+      try {
+        const handler = createCeoToolHandler('org-1');
+        const result = await handler('web_search', { query: 'Bay Area robotics', limit: 2 });
+        const parsed = JSON.parse(result);
+
+        expect(parsed.query).toBe('Bay Area robotics');
+        expect(parsed.results).toHaveLength(2);
+        expect(parsed.results[0].title).toBe('RoboTech Inc');
+        expect(parsed.results[0].url).toBe('https://robotech.com');
+        expect(parsed.results[0].snippet).toBe('Leading robotics company in the Bay Area');
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
+    it('returns error when fetch fails', async () => {
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+
+      try {
+        const handler = createCeoToolHandler('org-1');
+        const result = await handler('web_search', { query: 'test' });
+        const parsed = JSON.parse(result);
+        expect(parsed.error).toContain('Network error');
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
+    it('caps limit at 10', async () => {
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        text: () => Promise.resolve(''),
+      });
+
+      try {
+        const handler = createCeoToolHandler('org-1');
+        const result = await handler('web_search', { query: 'test', limit: 50 });
+        const parsed = JSON.parse(result);
+        expect(parsed.results).toHaveLength(0); // no results in empty HTML, but didn't crash
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+  });
+
+  describe('query_role_memory', () => {
+    it('embeds query and returns matching role memories', async () => {
+      const fakeEmbedding = new Array(768).fill(0.1);
+      mockEmbedText.mockResolvedValue(fakeEmbedding);
+      mockMatchRoleMemory.mockResolvedValue([
+        { id: 'mem-1', role: 'researcher', content: 'Competitor X charges $50/mo', confidence: 'high', entryType: 'finding', similarity: 0.92 },
+        { id: 'mem-2', role: 'researcher', content: 'Market size is $2B', confidence: 'medium', entryType: 'finding', similarity: 0.85 },
+      ]);
+
+      const handler = createCeoToolHandler('org-1');
+      const result = await handler('query_role_memory', { role: 'researcher', query: 'competitor pricing' });
+      const parsed = JSON.parse(result);
+
+      expect(parsed.role).toBe('researcher');
+      expect(parsed.results).toHaveLength(2);
+      expect(parsed.results[0].content).toBe('Competitor X charges $50/mo');
+      expect(parsed.results[0].similarity).toBe(0.92);
+      expect(mockEmbedText).toHaveBeenCalledWith('competitor pricing', 'query');
+      expect(mockMatchRoleMemory).toHaveBeenCalledWith('org-1', 'researcher', fakeEmbedding, 5);
+    });
+
+    it('respects custom limit', async () => {
+      mockEmbedText.mockResolvedValue(new Array(768).fill(0));
+      mockMatchRoleMemory.mockResolvedValue([]);
+
+      const handler = createCeoToolHandler('org-1');
+      await handler('query_role_memory', { role: 'coder', query: 'deploy', limit: 3 });
+
+      expect(mockMatchRoleMemory).toHaveBeenCalledWith('org-1', 'coder', expect.any(Array), 3);
+    });
+
+    it('returns error when embedding fails', async () => {
+      mockEmbedText.mockRejectedValue(new Error('Model not loaded'));
+
+      const handler = createCeoToolHandler('org-1');
+      const result = await handler('query_role_memory', { role: 'researcher', query: 'test' });
+      const parsed = JSON.parse(result);
+      expect(parsed.error).toContain('Model not loaded');
     });
   });
 });

@@ -16,6 +16,8 @@ import { createThread, insertEmailMessage } from '../db/email-threads.js';
 import { getOrg, getOwnerLastSeen } from '../db/orgs.js';
 import { computeOwnerPresence } from '../ai/prompts/ceo-chat.js';
 import { createBoardRequest, updateBoardRequestThreadId, getPendingBoardRequests, resolveBoardRequest } from '../db/boardRequests.js';
+import { embedText } from '../lib/embeddings.js';
+import { matchRoleMemory } from '../db/role-memory.js';
 
 export const CEO_TOOLS: ToolDefinition[] = [
   {
@@ -264,6 +266,37 @@ When revoking: overwrites the value with a sentinel so downstream systems detect
           note: { type: 'string', description: 'What you did and why — recorded for audit trail' },
         },
         required: ['task_id', 'resolution', 'note'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'web_search',
+      description: 'Search the web for information. Use this to answer factual questions, research companies, find current data — anything you can look up yourself instead of creating a researcher task. Returns top results with titles, URLs, and snippets.',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'Search query' },
+          limit: { type: 'number', description: 'Max results (default 5, max 10)' },
+        },
+        required: ['query'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'query_role_memory',
+      description: "Search what a specific worker role knows from past tasks. Use this to check if your team already has relevant knowledge before creating a new research task. Returns semantically similar entries from the role's memory.",
+      parameters: {
+        type: 'object',
+        properties: {
+          role: { type: 'string', enum: ['researcher', 'coder', 'writer', 'analyst', 'ops'], description: 'Which role to search' },
+          query: { type: 'string', description: 'What to search for (natural language)' },
+          limit: { type: 'number', description: 'Max results (default 5, max 10)' },
+        },
+        required: ['role', 'query'],
       },
     },
   },
@@ -846,6 +879,78 @@ export function createCeoToolHandler(
           from_state: 'ESCALATED',
           to_state: targetState,
         });
+      }
+
+      case 'web_search': {
+        const query = args.query as string;
+        const limit = Math.min((args.limit as number) ?? 5, 10);
+
+        try {
+          const encoded = encodeURIComponent(query);
+          const url = `https://html.duckduckgo.com/html/?q=${encoded}`;
+          const res = await fetch(url, {
+            headers: { 'User-Agent': 'PRECEPT-CEO/1.0' },
+            signal: AbortSignal.timeout(15_000),
+          });
+          const html = await res.text();
+
+          // Parse results from DuckDuckGo HTML
+          const linkRe = /<a rel="nofollow" class="result__a" href="([^"]+)"[^>]*>(.*?)<\/a>/g;
+          const snippetRe = /<a class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g;
+
+          const links: Array<{ href: string; title: string }> = [];
+          let m: RegExpExecArray | null;
+          while ((m = linkRe.exec(html)) !== null) links.push({ href: m[1], title: m[2] });
+
+          const snippets: string[] = [];
+          while ((m = snippetRe.exec(html)) !== null) snippets.push(m[1]);
+
+          const stripHtml = (s: string) => s.replace(/<[^>]+>/g, '').trim();
+
+          const results = links.slice(0, limit).map((link, i) => {
+            // Decode DuckDuckGo redirect URL
+            let actualUrl = link.href;
+            try {
+              const parsed = new URL(link.href, 'https://duckduckgo.com');
+              actualUrl = parsed.searchParams.get('uddg') ?? link.href;
+            } catch { /* use raw href */ }
+
+            return {
+              title: stripHtml(link.title),
+              url: actualUrl,
+              snippet: stripHtml(snippets[i] ?? ''),
+            };
+          });
+
+          return JSON.stringify({ query, results });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return JSON.stringify({ error: `Web search failed: ${msg}` });
+        }
+      }
+
+      case 'query_role_memory': {
+        const role = args.role as string;
+        const query = args.query as string;
+        const limit = Math.min((args.limit as number) ?? 5, 10);
+
+        try {
+          const embedding = await embedText(query, 'query');
+          const matches = await matchRoleMemory(orgId, role, embedding, limit);
+          return JSON.stringify({
+            role,
+            query,
+            results: matches.map(m => ({
+              content: m.content,
+              confidence: m.confidence,
+              type: m.entryType,
+              similarity: m.similarity,
+            })),
+          });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return JSON.stringify({ error: `Role memory query failed: ${msg}` });
+        }
       }
 
       default:
